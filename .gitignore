@@ -1,4 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 
 # dependencies
 /node_modules
@@ -31,7 +31,6 @@ yarn-error.log*
 .vercel
 .env
 app/db
-drizzle
 public/tracker.js
 public/tracker.min.js
 
