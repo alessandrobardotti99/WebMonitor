@@ -6,6 +6,7 @@ import { Activity, BarChart2, Zap, Shield, ArrowRight, Code2, Gauge, Bot, Check,
 import { motion, useAnimation } from "framer-motion"
 import Header from '@/components/header'
 import { HeroSection } from "@/components/hero-section"
+import Image from "next/image"
 import {
   Accordion,
   AccordionContent,
@@ -220,17 +221,19 @@ export default function Home() {
                       <div className="p-6">
                         <div className="flex flex-col items-center text-center space-y-4">
                           <div className="relative w-20 h-20">
-                            <img
+                            <Image
                               src={testimonial.image}
                               alt={testimonial.author}
                               className="rounded-full object-cover w-full h-full"
+                              width={80}
+                              height={80}
                             />
                             <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-1 rounded-full">
                               <Check className="w-4 h-4" />
                             </div>
                           </div>
                           <blockquote className="text-xl italic max-w-2xl">
-                            "{testimonial.quote}"
+                            &quot;{testimonial.quote}&quot;
                           </blockquote>
                           <div>
                             <div className="font-semibold">{testimonial.author}</div>

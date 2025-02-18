@@ -99,7 +99,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push("/dashboard"); // Reindirizza alla dashboard dopo il login
+      router.push("/dashboard");
     }
 
     setIsLoading(false);

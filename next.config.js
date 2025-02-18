@@ -4,6 +4,14 @@ const nextConfig = {
   experimental: {
     serverActions: true, // Se usi Server Actions
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;

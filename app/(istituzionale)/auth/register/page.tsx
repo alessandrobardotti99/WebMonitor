@@ -8,13 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { useRouter } from "next/navigation"
 
 const GridAnimation = () => {
   return (
@@ -80,6 +74,7 @@ const FeatureList = () => {
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -111,7 +106,7 @@ export default function RegisterPage() {
         throw new Error(data.error || "Errore durante la registrazione");
       }
   
-      alert("Registrazione completata! Ora puoi accedere.");
+      router.push("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);

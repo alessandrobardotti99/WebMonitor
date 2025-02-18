@@ -31,6 +31,7 @@ yarn-error.log*
 .vercel
 .env
 app/db
+drizzle
 public/tracker.js
 public/tracker.min.js
 
