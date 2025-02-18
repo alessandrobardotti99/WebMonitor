@@ -45,7 +45,7 @@ export default function DocsPage() {
   return (
     <>
     <Header />
-    <div className="max-w-6xl mx-auto px-4 py-28">
+    <div className="max-w-[1400px] mx-auto px-4 py-28">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

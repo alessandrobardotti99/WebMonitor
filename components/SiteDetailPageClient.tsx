@@ -174,7 +174,7 @@ export default function SiteDetailPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 container m-auto mt-16">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
             <Link href={'/dashboard'}>
@@ -309,7 +309,7 @@ export default function SiteDetailPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Recent JavaScript Errors</CardTitle>
@@ -351,9 +351,8 @@ export default function SiteDetailPage() {
             </ScrollArea>
           </CardContent>
         </Card>
-      </div>
 
-      <Card>
+        <Card>
         <CardHeader>
           <CardTitle>Image Optimization Issues</CardTitle>
         </CardHeader>
@@ -378,6 +377,9 @@ export default function SiteDetailPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      
 
       <Card>
         <CardHeader>
