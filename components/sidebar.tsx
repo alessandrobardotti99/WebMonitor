@@ -40,9 +40,11 @@ export function Sidebar() {
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-center">
         <div className="flex items-center gap-2">
+          <Link href={'/'}>
         <div className="m-auto flex items-center justify-center">
                <Image src={'/images/logo.png'} alt='Web Monitor' width={80} height={80}></Image>
             </div>
+            </Link>
           {!collapsed && (
             <motion.span
               initial={{ opacity: 0 }}

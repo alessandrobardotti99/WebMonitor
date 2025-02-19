@@ -7,6 +7,6 @@ export async function generateStaticParams() {
   ];
 }
 
-export default function Page({ params }: { params: { slug: string } }) {
-  return <SiteDetailPageClient slug={params.slug} />;
+export default function Page({}: { params: { slug: string } }) {
+  return <SiteDetailPageClient />
 }

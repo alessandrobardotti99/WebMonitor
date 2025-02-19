@@ -57,8 +57,8 @@ export default function Home() {
               </div>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                Monitora le Performance del tuo Sito Web in{' '}
-                <span className="text-primary">Tempo Reale</span>
+                Monitora le performance del tuo sito web in{' '}
+                <span className="text-primary">tempo reale</span>
               </h1>
               <p className="text-xl text-muted-foreground">
                 Ottieni informazioni istantanee sulle prestazioni, gli errori e le opportunità di ottimizzazione del tuo sito web.

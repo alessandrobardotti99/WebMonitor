@@ -1,54 +1,20 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { AlertCircle, Clock, Image as ImageIcon, Code, Terminal, FileDown, ArrowLeft } from "lucide-react"
+import { AlertCircle, Clock, Image as ImageIcon, Code, Terminal, FileDown, ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { Site } from "@/lib/api-types"
 
-interface Site {
-  id: string;
+interface SiteDetailPageClientProps {
   slug: string;
-  url: string;
-  monitoringCode: string;
-  status: 'healthy' | 'warning' | 'error';
-  lastUpdate: string;
-  metrics: {
-    loadTime: number;
-    errors: {
-      type: string;
-      message: string;
-      filename: string;
-      lineNumber: number;
-      timestamp: string;
-    }[];
-    consoleEntries: {
-      type: 'log' | 'info' | 'warn' | 'error';
-      message: string;
-      timestamp: string;
-    }[];
-    imageIssues: {
-      url: string;
-      originalSize: { width: number; height: number };
-      displaySize: { width: number; height: number };
-    }[];
-  };
-  performanceData: typeof defaultPerformanceData;
 }
-
-const defaultPerformanceData = [
-  { time: '00:00', loadTime: 1.2 },
-  { time: '04:00', loadTime: 1.5 },
-  { time: '08:00', loadTime: 2.1 },
-  { time: '12:00', loadTime: 1.8 },
-  { time: '16:00', loadTime: 1.3 },
-  { time: '20:00', loadTime: 1.6 },
-]
 
 const getStatusColor = (status: Site['status']) => {
   switch (status) {
@@ -58,6 +24,8 @@ const getStatusColor = (status: Site['status']) => {
       return 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400';
     case 'error':
       return 'bg-red-500/15 text-red-700 dark:text-red-400';
+    default:
+      return 'bg-gray-500/15 text-gray-700 dark:text-gray-400';
   }
 }
 
@@ -74,65 +42,39 @@ const getConsoleEntryColor = (type: 'log' | 'info' | 'warn' | 'error') => {
   }
 }
 
-
 export default function SiteDetailPage() {
   const params = useParams()
+  console.log("🔍 Params ricevuti:", params);
+  const monitoringCode = params.slug as string;
   const [activeMetric, setActiveMetric] = useState<'performance' | 'errors'>('performance')
   const [integrationMethod, setIntegrationMethod] = useState<'script' | 'cdn'>('script')
+  const [site, setSite] = useState<Site | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // In a real app, fetch site data based on the slug
-  const site: Site = {
-    id: '1',
-    slug: 'example-com',
-    url: decodeURIComponent(params.site as string),
-    monitoringCode: `wm_${Date.now()}`,
-    status: 'warning',
-    lastUpdate: '2 minutes ago',
-    metrics: {
-      loadTime: 1.58,
-      errors: [
-        {
-          type: 'TypeError',
-          message: 'Cannot read property \'length\' of undefined',
-          filename: 'main.js',
-          lineNumber: 123,
-          timestamp: '2025-02-19T10:30:15.000Z'
-        },
-        {
-          type: 'ReferenceError',
-          message: 'analytics is not defined',
-          filename: 'analytics.js',
-          lineNumber: 45,
-          timestamp: '2025-02-19T10:31:20.000Z'
+  useEffect(() => {
+    
+    const fetchSiteData = async () => {
+      try {
+        console.log(`📡 Fetching data for monitoringCode: ${monitoringCode}`);
+        setIsLoading(true);
+        const response = await fetch(`/api/collect/sites/${monitoringCode}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch site data');
         }
-      ],
-      consoleEntries: [
-        {
-          type: 'error',
-          message: 'Failed to load resource: the server responded with a status of 404',
-          timestamp: '2025-02-19T10:30:10.000Z'
-        },
-        {
-          type: 'warn',
-          message: 'Authentication token is about to expire',
-          timestamp: '2025-02-19T10:31:00.000Z'
-        }
-      ],
-      imageIssues: [
-        {
-          url: '/images/hero.jpg',
-          originalSize: { width: 1920, height: 1080 },
-          displaySize: { width: 480, height: 270 }
-        },
-        {
-          url: '/images/product.jpg',
-          originalSize: { width: 800, height: 800 },
-          displaySize: { width: 1600, height: 1600 }
-        }
-      ]
-    },
-    performanceData: defaultPerformanceData
-  }
+        const data = await response.json();
+        setSite(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchSiteData();
+  }, [monitoringCode]);
+  
+  
 
   const getScriptCode = (site: Site) => `
 <!-- Add this code just before closing </body> tag -->
@@ -156,6 +98,8 @@ export default function SiteDetailPage() {
 ></script>`
 
   const handleExportData = () => {
+    if (!site) return;
+    
     const data = {
       site: site.url,
       metrics: site.metrics,
@@ -173,14 +117,43 @@ export default function SiteDetailPage() {
     URL.revokeObjectURL(url);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Caricamento dati...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !site) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
+          <h2 className="text-lg font-semibold">Errore nel caricamento dei dati</h2>
+          <p className="text-muted-foreground">{error || 'Sito non trovato'}</p>
+          <Button asChild>
+            <Link href="/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Dashboard
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 container m-auto mt-16">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-            <Link href={'/dashboard'}>
-            <ArrowLeft />
-            </Link>
-          <h1 className="text-2xl font-bold">{site.slug}</h1>
+          <Link href="/dashboard/siti-monitorati">
+            <ArrowLeft className="h-6 w-6" />
+          </Link>
+          <h1 className="text-2xl font-bold">{site.url}</h1>
           <Badge className={getStatusColor(site.status)}>
             {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
           </Badge>
@@ -195,12 +168,12 @@ export default function SiteDetailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Average Load Time
+              Average Load Time ⚡️
             </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{site.metrics.loadTime}s</div>
+            <div className="text-2xl font-bold">{site.metrics.loadTime.toFixed(2)}s</div>
             <p className="text-xs text-muted-foreground">
               +0.1s from last hour
             </p>
@@ -210,14 +183,15 @@ export default function SiteDetailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              JavaScript Errors
+              JavaScript Errors 🐛
             </CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{site.metrics.errors.length}</div>
             <p className="text-xs text-muted-foreground">
-              -2 from last hour
+              {site.metrics.errors.length > 0 ? '+' : '-'}
+              {site.metrics.errors.length} from last hour
             </p>
           </CardContent>
         </Card>
@@ -225,14 +199,15 @@ export default function SiteDetailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Image Issues
+              Image Issues 🖼️
             </CardTitle>
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{site.metrics.imageIssues.length}</div>
             <p className="text-xs text-muted-foreground">
-              +3 from last hour
+              {site.metrics.imageIssues.length > 0 ? '+' : '-'}
+              {site.metrics.imageIssues.length} from last hour
             </p>
           </CardContent>
         </Card>
@@ -240,14 +215,15 @@ export default function SiteDetailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Console Entries
+              Console Entries 📝
             </CardTitle>
             <Terminal className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{site.metrics.consoleEntries.length}</div>
             <p className="text-xs text-muted-foreground">
-              +5 from last hour
+              {site.metrics.consoleEntries.length > 0 ? '+' : '-'}
+              {site.metrics.consoleEntries.length} from last hour
             </p>
           </CardContent>
         </Card>
@@ -255,7 +231,7 @@ export default function SiteDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Performance Overview</CardTitle>
+          <CardTitle>Performance Overview 📊</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={activeMetric} onValueChange={(v) => setActiveMetric(v as 'performance' | 'errors')}>
@@ -312,7 +288,7 @@ export default function SiteDetailPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Recent JavaScript Errors</CardTitle>
+            <CardTitle>Recent JavaScript Errors 🐛</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
@@ -336,7 +312,7 @@ export default function SiteDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Console Output</CardTitle>
+            <CardTitle>Console Output 📝</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
@@ -353,37 +329,37 @@ export default function SiteDetailPage() {
         </Card>
 
         <Card>
-        <CardHeader>
-          <CardTitle>Image Optimization Issues</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {site.metrics.imageIssues.map((issue, i) => (
-              <div key={i} className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">{issue.url.split('/').pop()}</p>
-                <div className="text-sm text-muted-foreground">
-                  <p>Original: {issue.originalSize.width}x{issue.originalSize.height}px</p>
-                  <p>Display: {issue.displaySize.width}x{issue.displaySize.height}px</p>
-                  <p className="text-destructive mt-1">
-                    Recommendation: {
-                      issue.originalSize.width > issue.displaySize.width * 2
-                        ? 'Serve resized image'
-                        : 'Use higher resolution image'
-                    }
-                  </p>
-                </div>
+          <CardHeader>
+            <CardTitle>Image Optimization Issues 🖼️</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[300px]">
+              <div className="space-y-4">
+                {site.metrics.imageIssues.map((issue, i) => (
+                  <div key={i} className="p-3 bg-muted rounded-lg">
+                    <p className="font-medium">{issue.url.split('/').pop()}</p>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Original: {issue.originalSize.width}x{issue.originalSize.height}px</p>
+                      <p>Display: {issue.displaySize.width}x{issue.displaySize.height}px</p>
+                      <p className="text-destructive mt-1">
+                        Recommendation: {
+                          issue.originalSize.width > issue.displaySize.width * 2
+                            ? 'Serve resized image'
+                            : 'Use higher resolution image'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
-
-      
 
       <Card>
         <CardHeader>
-          <CardTitle>Installation Methods</CardTitle>
+          <CardTitle>Installation Methods 🔧</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={integrationMethod} onValueChange={(v) => setIntegrationMethod(v as 'script' | 'cdn')}>

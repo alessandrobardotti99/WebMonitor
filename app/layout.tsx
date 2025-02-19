@@ -18,6 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it" suppressHydrationWarning>
+      
       <body className={inter.className}>
         <SessionProvider>
           <main>{children}</main>
