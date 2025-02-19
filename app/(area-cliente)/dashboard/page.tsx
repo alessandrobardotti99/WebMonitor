@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { motion } from "framer-motion"
 import { useSession } from "next-auth/react";
-import { 
-  Card, 
-  CardContent, 
+import FooterDashboard from '@/components/footer-dashboard';
+import {
+  Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardDescription 
+  CardDescription
 } from "@/components/ui/card"
-import { 
+import {
   Activity,
   Users,
   ArrowUpRight,
@@ -29,13 +30,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
   Area
@@ -64,13 +65,13 @@ const performanceData = [
   { time: '21:00', score: 98 },
 ];
 
-const StatCard = ({ 
-  title, 
-  value, 
-  change, 
+const StatCard = ({
+  title,
+  value,
+  change,
   icon: Icon,
   trend = "up"
-}: { 
+}: {
   title: string;
   value: string;
   change: string;
@@ -84,7 +85,7 @@ const StatCard = ({
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <div className="flex items-center gap-2">
             <p className="text-2xl font-bold">{value}</p>
-            <Badge 
+            <Badge
               variant={trend === "up" ? "default" : "destructive"}
               className="font-medium"
             >
@@ -105,7 +106,7 @@ const StatCard = ({
   </Card>
 )
 
-const AlertCard = ({ title, description, icon: Icon }: { 
+const AlertCard = ({ title, description, icon: Icon }: {
   title: string;
   description: string;
   icon: React.ElementType;
@@ -125,12 +126,12 @@ const AlertCard = ({ title, description, icon: Icon }: {
   </Card>
 )
 
-const QuickLinkCard = ({ 
-  icon: Icon, 
-  title, 
-  description, 
-  href 
-}: { 
+const QuickLinkCard = ({
+  icon: Icon,
+  title,
+  description,
+  href
+}: {
   icon: React.ElementType;
   title: string;
   description: string;
@@ -168,18 +169,19 @@ export default function DashboardPage() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
+      <div className='flex-1 overflow-scroll h-screen flex flex-col min-h-[calc(100vh-2rem)]'>
       <main className="flex-1 ml-64">
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <motion.h1 
+              <motion.h1
                 className="text-2xl font-bold"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 {greeting}, {userName} 👋
               </motion.h1>
-              <motion.p 
+              <motion.p
                 className="text-muted-foreground"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -206,7 +208,7 @@ export default function DashboardPage() {
             transition={{ delay: 0.1 }}
             className="mb-8"
           >
-             <h2 className="text-lg font-semibold mb-4">Link Rapidi 🔗</h2>
+            <h2 className="text-lg font-semibold mb-4">Link Rapidi 🔗</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <QuickLinkCard
                 icon={BarChart3}
@@ -317,23 +319,23 @@ export default function DashboardPage() {
                       <AreaChart data={visitData}>
                         <defs>
                           <linearGradient id="visitGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="time" className="text-xs" />
                         <YAxis className="text-xs" />
-                        <Tooltip 
-                          contentStyle={{ 
+                        <Tooltip
+                          contentStyle={{
                             backgroundColor: 'hsl(var(--background))',
                             border: '1px solid hsl(var(--border))',
                             borderRadius: '8px'
                           }}
                         />
-                        <Area 
-                          type="monotone" 
-                          dataKey="visits" 
+                        <Area
+                          type="monotone"
+                          dataKey="visits"
                           stroke="hsl(var(--primary))"
                           fillOpacity={1}
                           fill="url(#visitGradient)"
@@ -362,19 +364,19 @@ export default function DashboardPage() {
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="time" className="text-xs" />
                         <YAxis domain={[90, 100]} className="text-xs" />
-                        <Tooltip 
-                          contentStyle={{ 
+                        <Tooltip
+                          contentStyle={{
                             backgroundColor: 'hsl(var(--background))',
                             border: '1px solid hsl(var(--border))',
                             borderRadius: '8px'
                           }}
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="score" 
+                        <Line
+                          type="monotone"
+                          dataKey="score"
                           stroke="hsl(var(--primary))"
                           strokeWidth={2}
-                          dot={{ 
+                          dot={{
                             stroke: 'hsl(var(--primary))',
                             strokeWidth: 2,
                             r: 4,
@@ -389,6 +391,7 @@ export default function DashboardPage() {
             </motion.div>
           </div>
 
+          <h2 className="text-lg font-semibold mb-4">Suggerimenti 💡</h2>               
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -426,6 +429,10 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+      <div>
+        <FooterDashboard />
+      </div>
+      </div>
     </div>
   )
 }

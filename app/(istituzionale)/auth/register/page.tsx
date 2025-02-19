@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 const GridAnimation = () => {
   return (
@@ -145,6 +146,9 @@ export default function RegisterPage() {
             transition={{ delay: 0.4 }}
             className="space-y-4"
           >
+            <div className="m-auto flex items-center justify-center">
+               <Image src={'/images/logo.png'} alt='Web Monitor' width={100} height={100}></Image>
+            </div>
             <h1 className="text-4xl font-bold tracking-tight text-white">
               Join WebMonitor
             </h1>

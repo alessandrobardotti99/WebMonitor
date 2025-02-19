@@ -4,8 +4,7 @@ import { motion } from "framer-motion"
 import { 
   Activity, 
   LayoutDashboard, 
-  Settings, 
-  Bell, 
+  Settings,  
   HelpCircle,
   LogOut,
   Menu
@@ -15,11 +14,12 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react";
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Bell, label: "Siti monitorati", href: "/dashboard/siti-monitorati" },
+  { icon: Activity, label: "Siti monitorati", href: "/dashboard/siti-monitorati" },
   { icon: Settings, label: "Impostazioni", href: "/dashboard/impostazioni" },
   { icon: HelpCircle, label: "Supporto", href: "/dashboard/support" },
 ]
@@ -38,9 +38,11 @@ export function Sidebar() {
       transition={{ duration: 0.2 }}
     >
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-4 border-b flex items-center justify-center">
         <div className="flex items-center gap-2">
-          <Activity className="h-6 w-6 text-primary" />
+        <div className="m-auto flex items-center justify-center">
+               <Image src={'/images/logo.png'} alt='Web Monitor' width={80} height={80}></Image>
+            </div>
           {!collapsed && (
             <motion.span
               initial={{ opacity: 0 }}
@@ -48,7 +50,6 @@ export function Sidebar() {
               exit={{ opacity: 0 }}
               className="font-semibold text-lg"
             >
-              WebMonitor
             </motion.span>
           )}
         </div>
@@ -56,7 +57,7 @@ export function Sidebar() {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8"
+          className="h-8 w-8 absolute top-2 right-4"
         >
           <Menu className="h-4 w-4" />
         </Button>
@@ -92,10 +93,10 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t">
+      <div className="p-2 border-t">
         <button
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           )} onClick={() => signOut()}
         >
           <LogOut className="h-5 w-5" />

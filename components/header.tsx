@@ -28,13 +28,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const { setTheme, theme } = useTheme()
   const pathname = usePathname()
-  const { data: session } = useSession() // Recupera sessione utente
+  const { data: session } = useSession()
   const isDashboard = pathname?.startsWith('/dashboard')
   const isAuthPage = pathname?.startsWith('/auth')
 
@@ -48,7 +49,7 @@ export default function Header() {
         <nav className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link href="/" className="flex items-center space-x-2">
-              <Activity className="h-6 w-6 text-primary" />
+              <Image src={'/images/logo.png'} alt='Web Monitor' width={50} height={50}></Image>
               <span className="text-xl font-bold">WebMonitor</span>
             </Link>
           </div>
@@ -119,10 +120,10 @@ export default function Header() {
                 ) : (
                   <>
                     <Link href="/auth/login">
-                      <Button variant="ghost">Sign In</Button>
+                      <Button variant="secondary">Accedi</Button>
                     </Link>
                     <Link href="/auth/register">
-                      <Button>Get Started</Button>
+                      <Button>registrati</Button>
                     </Link>
                   </>
                 )}
