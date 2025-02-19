@@ -1,8 +1,8 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "@/app/db";
-import { users } from "@/app/db/schema";
+import { db } from "../../../db";
+import { users } from "../../../db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
