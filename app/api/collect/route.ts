@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/db/";
 import { performanceMetrics, errors, consoleEntries, imageIssues, sites, users } from "@/app/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { MonitoringData } from "@/lib/api-types";
 import { v4 as uuidv4, validate as isUUID } from "uuid";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
@@ -106,11 +108,23 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    // Recupera tutti i siti dal database
-    const allSites = await db.select().from(sites);
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+    }
 
-    // Formatta i dati per la risposta
-    const response = allSites.map(site => ({
+    console.log(`🔍 Recupero solo i siti di proprietà dell'utente: ${session.user.id}`);
+
+    const userSites = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.userId, session.user.id));
+
+    if (userSites.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+    const response = userSites.map(site => ({
       id: site.id,
       slug: site.slug,
       url: site.url,
@@ -122,7 +136,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(response, { status: 200 });
 
   } catch (error) {
-    console.error("Errore API /collect/sites:", error);
+    console.error("❌ Errore API /collect/sites:", error);
     return NextResponse.json({ error: "Errore interno del server" }, { status: 500 });
   }
 }
