@@ -31,8 +31,6 @@ yarn-error.log*
 .vercel
 .env
 app/db
-public/tracker.js
-public/tracker.min.js
 
 # typescript
 *.tsbuildinfo

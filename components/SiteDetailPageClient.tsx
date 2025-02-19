@@ -129,7 +129,7 @@ export default function SiteDetailPage() {
     var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s);
     j.async=true;
-    j.src='https://webmonitor.example.com/tracker.js';
+    j.src='https://web-monitor-eta.vercel.app/tracker.js';
     j.dataset.siteId=c;
     f.parentNode.insertBefore(j,f);
   })(window,document,'script','${site.monitoringCode}');
