@@ -129,7 +129,7 @@ export default function SiteDetailPage() {
     var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s);
     j.async=true;
-    j.src='https://web-monitor-eta.vercel.app/tracker.js';
+    j.src='https://web-monitor-eta.vercel.app/tracker.min.js';
     j.dataset.siteId=c;
     f.parentNode.insertBefore(j,f);
   })(window,document,'script','${site.monitoringCode}');
@@ -138,7 +138,7 @@ export default function SiteDetailPage() {
   const getCdnCode = (site: Site) => `
 <!-- Add this code in the <head> tag -->
 <script 
-  src="https://cdn.webmonitor.control/tracker.min.js" 
+  src="https://web-monitor-eta.vercel.app/tracker.min.js" 
   data-site-id="${site.monitoringCode}"
   async
 ></script>`
@@ -150,7 +150,7 @@ import { useEffect } from 'react';
 function WebMonitor() {
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://cdn.webmonitor.control/tracker.min.js';
+    script.src = 'https://web-monitor-eta.vercel.app/tracker.min.js';
     script.async = true;
     script.dataset.siteId = '${site.monitoringCode}';
     document.body.appendChild(script);
@@ -186,7 +186,7 @@ export default {
   name: 'WebMonitor',
   mounted() {
     const script = document.createElement('script');
-    script.src = 'https://cdn.webmonitor.control/tracker.min.js';
+    script.src = 'https://web-monitor-eta.vercel.app/tracker.min.js';
     script.async = true;
     script.dataset.siteId = '${site.monitoringCode}';
     document.body.appendChild(script);
@@ -210,7 +210,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <Script
-          src="https://cdn.webmonitor.control/tracker.min.js"
+          src="https://web-monitor-eta.vercel.app/tracker.min.js"
           data-site-id="${site.monitoringCode}"
           strategy="afterInteractive"
         />
@@ -230,7 +230,7 @@ export default function RootLayout({ children }) {
     @yield('content')
     
     <script
-        src="https://cdn.webmonitor.control/tracker.min.js"
+        src="https://web-monitor-eta.vercel.app/tracker.min.js"
         data-site-id="{{ '${site.monitoringCode}' }}"
         async
     ></script>
@@ -240,7 +240,7 @@ export default function RootLayout({ children }) {
 {{-- Or in your app.blade.php --}}
 @push('scripts')
     <script
-        src="https://cdn.webmonitor.control/tracker.min.js"
+        src="https://web-monitor-eta.vercel.app/tracker.min.js"
         data-site-id="{{ '${site.monitoringCode}' }}"
         async
     ></script>

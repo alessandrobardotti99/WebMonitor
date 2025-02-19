@@ -1,9 +1,9 @@
 "use client"
-
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Activity, BarChart2, Zap, Shield, ArrowRight, Code2, Gauge, Bot, Check, Sparkles } from "lucide-react"
-import { motion, useAnimation } from "framer-motion"
+import { Activity, BarChart2, Terminal, Shield, ArrowRight, Code2, Gauge, Bot, Check, Sparkles } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import Header from '@/components/header'
 import { HeroSection } from "@/components/hero-section"
 import Image from "next/image"
@@ -31,7 +31,67 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } }
 }
 
+
+const devFeatures = [
+  {
+    icon: "🚀",
+    title: "Supporto Localhost",
+    description: "Monitora le tue applicazioni in fase di sviluppo su qualsiasi porta localhost",
+    content: {
+      title: "Sviluppa con Fiducia ",
+      description: "Monitora le tue applicazioni direttamente in ambiente di sviluppo con supporto completo per localhost e porte personalizzate.",
+      features: [
+        "Supporto per tutte le porte localhost standard",
+        "Monitoraggio in tempo reale durante lo sviluppo",
+        "Configurazione automatica dell'ambiente"
+      ]
+    }
+  },
+  {
+    icon: "🔍",
+    title: "Debug in Tempo Reale",
+    description: "Individua e risolvi i problemi durante lo sviluppo, prima della produzione",
+    content: {
+      title: "Debug Senza Interruzioni",
+      description: "Identifica e risolvi i problemi istantaneamente durante lo sviluppo, prima che raggiungano la produzione.",
+      features: [
+        "Tracciamento errori in tempo reale",
+        "Stack trace dettagliati e contestuali",
+        "Suggerimenti di ottimizzazione automatici"
+      ]
+    }
+  },
+
+  {
+    icon: "✅",
+    title: "Facilità di integrazione",
+    description: "Individua e risolvi i problemi durante lo sviluppo, prima della produzione",
+    content: {
+      title: "Integra il tracker in pochi minuti",
+      description: "Inserisci lo snipper di codice all'interno del tuo sito e inizia subito a tracciare i risultati",
+      features: [
+        "Velocità",
+        "Semplicità",
+        "Chirezza"
+      ]
+    }
+  }
+]
+
 export default function Home() {
+
+  const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeatureIndex((current) => (current + 1) % devFeatures.length);
+    }, 8000); // Switch every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeFeature = devFeatures[activeFeatureIndex];
+
   return (
     <>
       <Header />
@@ -49,12 +109,12 @@ export default function Home() {
               className="max-w-4xl mx-auto text-center space-y-4"
             >
               <div className="flex items-center justify-center gap-2 text-primary">
-              <div className="flex items-center justify-center">
-                <div className="inline-flex items-center rounded-full border px-4 py-1 text-sm gap-2 bg-background/50 backdrop-blur-sm">
-                ✨
-                  <span>Gratis per Sempre - Nessuna Carta di Credito Richiesta</span>
+                <div className="flex items-center justify-center">
+                  <div className="inline-flex items-center rounded-full border px-4 py-1 text-sm gap-2 bg-background/50 backdrop-blur-sm">
+                    ✨
+                    <span>Gratis per Sempre - Nessuna Carta di Credito Richiesta</span>
+                  </div>
                 </div>
-              </div>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
                 Monitora le performance del tuo sito web in{' '}
@@ -71,7 +131,7 @@ export default function Home() {
                   alt: "UI Components Preview",
                 }}
               />
-             
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Button size="lg" className="gap-2">
                   Inizia Gratis <ArrowRight className="h-4 w-4" />
@@ -107,7 +167,7 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="py-24 bg-muted/50 rounded-xl">
+        <div className="py-24 bg-muted/50 rounded-2xl">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="hidden"
@@ -168,6 +228,101 @@ export default function Home() {
                 </motion.div>
               ))}
             </motion.div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative">
+        {/* Development Support Section */}
+        <div className="pb-24 bg-muted/50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Column - Text Content */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={stagger}
+                className="space-y-6"
+              >
+                <div className="inline-flex items-center rounded-full border px-4 py-1 text-sm gap-2 bg-background/50 backdrop-blur-sm">
+                  <Code2 className="h-4 w-4" />
+                  <span>Perfetto per lo Sviluppo</span>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeFeatureIndex}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-6"
+                  >
+                    <motion.h2 className="text-4xl font-bold">
+                      {activeFeature.content.title}
+                    </motion.h2>
+
+                    <motion.p className="text-lg text-muted-foreground">
+                      {activeFeature.content.description}
+                    </motion.p>
+
+                    <motion.div className="space-y-4">
+                      {activeFeature.content.features.map((feature, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                          <div className="mt-1">
+                            <Check className="h-5 w-5 text-primary" />
+                          </div>
+                          <p className="text-muted-foreground">{feature}</p>
+                        </div>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                </AnimatePresence>
+
+                <motion.div variants={fadeInUp}>
+                  <Button size="lg" className="gap-2">
+                    Inizia a Sviluppare <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              </motion.div>
+
+              {/* Right Column - Feature Cards */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={stagger}
+                className="relative"
+              >
+
+                <div className="relative space-y-4">
+                  {devFeatures.map((feature, i) => (
+                    <motion.div
+                      key={i}
+                      variants={fadeInUp}
+                      whileHover={{ scale: 1.02 }}
+                      className={`transform transition-all ${i === activeFeatureIndex ? ' text-white bg-primary rounded-2xl' : 'bg-white rounded-2xl border'}`}
+                      onClick={() => setActiveFeatureIndex(i)}
+                    >
+                      <Card className={`transform transition-all cursor-pointer ${i === activeFeatureIndex ? ' text-white bg-primary rounded-2xl' : 'bg-white rounded-2xl border-none'}`}>
+                        <CardContent className={`transform transition-all rounded-2xl p-6 ${i === activeFeatureIndex ? ' rounded-2xl text-white bg-primary' : 'bg-white rounded-2xl'}`}>
+                          <div className="flex gap-4">
+                            <div className="p-3 rounded-lg flex items-center justify-center">
+                              <span className="text-4xl">{feature.icon}</span>
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="font-semibold text-xl">{feature.title}</h3>
+                              <p className={`transform transition-all ${i === activeFeatureIndex ? ' text-white' : 'text-muted-foreground'}`}>{feature.description}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
           </div>
         </div>
 
@@ -381,18 +536,18 @@ export default function Home() {
         </div>
 
         {/* CTA */}
-        <div className="py-24 bg-primary text-primary-foreground rounded-xl relative">
-        <motion.div
-          className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(68,68,68,.2)_50%,transparent_75%,transparent_100%)] bg-[length:500px_500px]"
-          animate={{
-            backgroundPosition: ["0px 0px", "500px 500px"],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
+        <div className="py-24 bg-primary text-primary-foreground rounded-2xl relative">
+          <motion.div
+            className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(68,68,68,.2)_50%,transparent_75%,transparent_100%)] bg-[length:500px_500px]"
+            animate={{
+              backgroundPosition: ["0px 0px", "500px 500px"],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
           <motion.div
             initial="hidden"
             whileInView="visible"
