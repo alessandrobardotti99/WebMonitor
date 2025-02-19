@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/db/";
-import { performanceMetrics, errors, consoleEntries, imageIssues, sites, users } from "@/app/db/schema";
+import { db } from "@/db/";
+import { performanceMetrics, errors, consoleEntries, imageIssues, sites, users } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { MonitoringData } from "@/lib/api-types";
 import { v4 as uuidv4, validate as isUUID } from "uuid";

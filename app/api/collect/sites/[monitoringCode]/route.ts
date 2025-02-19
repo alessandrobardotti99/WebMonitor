@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/db/";
-import { sites, performanceMetrics, errors, consoleEntries, imageIssues } from "@/app/db/schema";
+import { db } from "@/db/";
+import { sites, performanceMetrics, errors, consoleEntries, imageIssues } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { Site } from "@/lib/api-types";
 

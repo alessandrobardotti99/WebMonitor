@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"; // Disabilita la generazione statica
 
-import { db } from "../../../db";
-import { users } from "../../../db/schema";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
