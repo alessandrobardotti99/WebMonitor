@@ -12,19 +12,21 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Bell, label: "Notifiche", href: "/dashboard/notifications" },
+  { icon: Bell, label: "Siti monitorati", href: "/dashboard/siti-monitorati" },
   { icon: Settings, label: "Impostazioni", href: "/dashboard/impostazioni" },
   { icon: HelpCircle, label: "Supporto", href: "/dashboard/support" },
 ]
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
+  const pathname = usePathname() // Ottiene la pagina attuale
 
   return (
     <motion.div 
@@ -62,27 +64,31 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
-              item.href === "/dashboard" && "bg-muted text-foreground"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {item.label}
-              </motion.span>
-            )}
-          </Link>
-        ))}
+        {menuItems.map((item) => {
+          const isActive = pathname === item.href; // Controlla se è la pagina attuale
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
+                isActive && "bg-primary text-white"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {item.label}
+                </motion.span>
+              )}
+            </Link>
+          )
+        })}
       </nav>
 
       {/* Footer */}

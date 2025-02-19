@@ -184,20 +184,6 @@ export default function DocsPage() {
           </div>
         </div>
 
-        {/* Next Steps */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Prossimi Passi</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Button className="justify-between group">
-              Visualizza Documentazione API
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-            <Button variant="outline" className="justify-between group">
-              <Github className="mr-2 h-4 w-4" />
-              Controlla Esempi su GitHub
-            </Button>
-          </div>
-        </div>
       </motion.div>
     </div>
     <Footer />

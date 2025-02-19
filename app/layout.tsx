@@ -1,13 +1,14 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { Toaster } from '@/components/ui/toaster';
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster";
+import SessionProvider from "@/components/providers/SessionProvider";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'WebMonitor - Website Performance Monitoring',
-  description: 'Monitor your website performance, errors, and optimization in real-time',
+  title: "WebMonitor - Website Performance Monitoring",
+  description: "Monitor your website performance, errors, and optimization in real-time",
 };
 
 export default function RootLayout({
@@ -16,12 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="it" suppressHydrationWarning>
       <body className={inter.className}>
-          <main>
-            {children}
-          </main>
+        <SessionProvider>
+          <main>{children}</main>
           <Toaster />
+        </SessionProvider>
       </body>
     </html>
   );

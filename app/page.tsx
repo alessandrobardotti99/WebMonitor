@@ -381,7 +381,18 @@ export default function Home() {
         </div>
 
         {/* CTA */}
-        <div className="py-24 bg-primary text-primary-foreground rounded-xl">
+        <div className="py-24 bg-primary text-primary-foreground rounded-xl relative">
+        <motion.div
+          className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(68,68,68,.2)_50%,transparent_75%,transparent_100%)] bg-[length:500px_500px]"
+          animate={{
+            backgroundPosition: ["0px 0px", "500px 500px"],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
           <motion.div
             initial="hidden"
             whileInView="visible"

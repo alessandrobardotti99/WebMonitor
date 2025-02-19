@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useSession } from "next-auth/react"
 import { 
   Activity, 
   Menu, 
@@ -33,24 +34,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const { setTheme, theme } = useTheme()
   const pathname = usePathname()
+  const { data: session } = useSession() // Recupera sessione utente
   const isDashboard = pathname?.startsWith('/dashboard')
   const isAuthPage = pathname?.startsWith('/auth')
-
-  // In a real app, this would be handled by your auth state management
-  const isAuthenticated = isDashboard
-
-  const menuItems = isDashboard 
-    ? [
-        { label: 'Documentation', href: '/docs' },
-        { label: 'Settings', href: '/settings' },
-        { label: 'Support', href: '/support' }
-      ]
-    : [
-        { label: 'Features', href: '#features' },
-        { label: 'Pricing', href: '#pricing' },
-        { label: 'Documentation', href: 'docs' },
-        { label: 'Blog', href: '#blog' }
-      ]
 
   if (isAuthPage) {
     return null
@@ -65,7 +51,9 @@ export default function Header() {
               <Activity className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">WebMonitor</span>
             </Link>
-            
+          </div>
+
+          <div>
             {isDashboard ? (
               <div className="hidden md:flex max-w-xl flex-1">
                 <div className="relative w-full">
@@ -80,15 +68,10 @@ export default function Header() {
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-6">
-                {menuItems.map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {item.label}
-                  </a>
-                ))}
+                <Link href="/docs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Documentation</Link>
+                <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</Link>
+                <Link href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+                <Link href="#blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Blog</Link>
               </div>
             )}
           </div>
@@ -110,7 +93,7 @@ export default function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuLabel>{session?.user?.name || "My Account"}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       <Settings className="mr-2 h-4 w-4" />
@@ -129,12 +112,20 @@ export default function Header() {
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-4">
-                <Link href="/auth/login">
-                  <Button variant="ghost">Sign In</Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button>Get Started</Button>
-                </Link>
+                {session ? (
+                  <Link href="/dashboard">
+                    <Button>Dashboard</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/auth/login">
+                      <Button variant="ghost">Sign In</Button>
+                    </Link>
+                    <Link href="/auth/register">
+                      <Button>Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             )}
             <Button
@@ -168,16 +159,6 @@ export default function Header() {
                     />
                   </div>
                   <div className="flex flex-col space-y-4">
-                    {menuItems.map((item) => (
-                      <a
-                        key={item.label}
-                        href={item.href}
-                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.label}
-                      </a>
-                    ))}
                     <Button className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Site
@@ -186,23 +167,26 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-4">
-                  {menuItems.map((item) => (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {item.label}
-                    </a>
-                  ))}
+                  <Link href="/docs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Documentation</Link>
+                  <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</Link>
+                  <Link href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+                  <Link href="#blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Blog</Link>
+
                   <div className="pt-4 flex flex-col space-y-2">
-                    <Link href="/auth/login">
-                      <Button variant="outline" className="w-full">Sign In</Button>
-                    </Link>
-                    <Link href="/auth/register">
-                      <Button className="w-full">Get Started</Button>
-                    </Link>
+                    {session ? (
+                      <Link href="/dashboard">
+                        <Button className="w-full">Dashboard</Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <Link href="/auth/login">
+                          <Button variant="outline" className="w-full">Sign In</Button>
+                        </Link>
+                        <Link href="/auth/register">
+                          <Button className="w-full">Get Started</Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
