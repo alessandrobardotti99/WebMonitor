@@ -65,7 +65,7 @@ const devFeatures = [
   {
     icon: "✅",
     title: "Facilità di integrazione",
-    description: "Individua e risolvi i problemi durante lo sviluppo, prima della produzione",
+    description: "Con o senza esperienza nella programmazione in pochi minuti sarai in grado di monitorare",
     content: {
       title: "Integra il tracker in pochi minuti",
       description: "Inserisci lo snipper di codice all'interno del tuo sito e inizia subito a tracciare i risultati",
@@ -167,7 +167,8 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="py-24 bg-muted/50 rounded-2xl">
+        <div></div>
+        <div className="py-24 bg-primary rounded-tl-2xl rounded-tr-2xl max-w-[99%] m-auto relative">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="hidden"
@@ -176,7 +177,7 @@ export default function Home() {
               variants={stagger}
               className="text-center mb-16"
             >
-              <motion.h2 variants={fadeInUp} className="text-3xl font-bold">
+              <motion.h2 variants={fadeInUp} className="text-3xl font-bold text-secondary">
                 Tutto ciò di cui hai Bisogno per Monitorare
               </motion.h2>
               <motion.p variants={fadeInUp} className="text-muted-foreground mt-4 text-lg">
@@ -215,11 +216,11 @@ export default function Home() {
                 >
                   <Card className="relative overflow-hidden h-full">
                     <CardContent className="pt-6">
-                      <div className="absolute top-0 right-0 p-3 text-primary/10">
+                      <div className="absolute top-0 right-0 p-3 text-primary">
                         {feature.icon}
                       </div>
                       <div className="space-y-2">
-                        <div className="text-primary">{feature.icon}</div>
+                       
                         <h3 className="font-semibold text-xl">{feature.title}</h3>
                         <p className="text-muted-foreground">{feature.description}</p>
                       </div>
@@ -232,9 +233,9 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative z-20">
         {/* Development Support Section */}
-        <div className="pb-24 bg-muted/50">
+        <div className="pb-24 bg-primary max-w-[99%] m-auto rounded-br-2xl rounded-bl-2xl">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Column - Text Content */}
@@ -245,7 +246,7 @@ export default function Home() {
                 variants={stagger}
                 className="space-y-6"
               >
-                <div className="inline-flex items-center rounded-full border px-4 py-1 text-sm gap-2 bg-background/50 backdrop-blur-sm">
+                <div className="inline-flex items-center rounded-full border px-4 py-1 text-sm gap-2 bg-secondary backdrop-blur-sm">
                   <Code2 className="h-4 w-4" />
                   <span>Perfetto per lo Sviluppo</span>
                 </div>
@@ -259,7 +260,7 @@ export default function Home() {
                     transition={{ duration: 0.3 }}
                     className="space-y-6"
                   >
-                    <motion.h2 className="text-4xl font-bold">
+                    <motion.h2 className="text-4xl font-bold text-secondary">
                       {activeFeature.content.title}
                     </motion.h2>
 
@@ -271,7 +272,7 @@ export default function Home() {
                       {activeFeature.content.features.map((feature, i) => (
                         <div key={i} className="flex items-start gap-3">
                           <div className="mt-1">
-                            <Check className="h-5 w-5 text-primary" />
+                            <Check className="h-5 w-5 text-secondary" />
                           </div>
                           <p className="text-muted-foreground">{feature}</p>
                         </div>
@@ -281,7 +282,7 @@ export default function Home() {
                 </AnimatePresence>
 
                 <motion.div variants={fadeInUp}>
-                  <Button size="lg" className="gap-2">
+                  <Button size="lg" className="gap-2 bg-secondary text-primary">
                     Inizia a Sviluppare <ArrowRight className="h-4 w-4" />
                   </Button>
                 </motion.div>
@@ -536,9 +537,9 @@ export default function Home() {
         </div>
 
         {/* CTA */}
-        <div className="py-24 bg-primary text-primary-foreground rounded-2xl relative">
+        <div className="py-24 bg-primary text-primary-foreground rounded-2xl relative z-30 mb-28 max-w-[99%] m-auto">
           <motion.div
-            className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(68,68,68,.2)_50%,transparent_75%,transparent_100%)] bg-[length:500px_500px]"
+            className="absolute -z-10 inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(68,68,68,.2)_50%,transparent_75%,transparent_100%)] bg-[length:500px_500px]"
             animate={{
               backgroundPosition: ["0px 0px", "500px 500px"],
             }}

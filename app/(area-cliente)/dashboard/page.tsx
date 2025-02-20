@@ -195,10 +195,10 @@ export default function DashboardPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Button>
-                <Activity className="w-4 h-4 mr-2" />
-                Scansione Rapida
-              </Button>
+              <div className='flex items-center gap-2'>
+                <span className='h-3 w-3 bg-green-500 rounded-full'></span>
+                Tutti i servizi sono attivi
+              </div>
             </motion.div>
           </div>
 
