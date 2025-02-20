@@ -11,15 +11,21 @@ const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
 
 function setCorsHeaders(response: NextResponse, req: NextRequest) {
-  const origin = req.headers.get("origin") || "https://web-monitor-eta.vercel.app"; 
+  const origin = req.headers.get("origin");
+
+  if (!origin) {
+    return response; 
+  }
 
   response.headers.set("Access-Control-Allow-Origin", origin);
+  response.headers.set("Vary", "Origin");
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  response.headers.set("Access-Control-Allow-Credentials", "true"); // Permetti credenziali
+  response.headers.set("Access-Control-Allow-Credentials", "true");
 
   return response;
 }
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -145,7 +151,6 @@ export async function GET(req: NextRequest) {
     }));
 
     return setCorsHeaders(NextResponse.json(response, { status: 200 }), req);
-
   } catch (error) {
     console.error("❌ Errore API /collect/sites:", error);
     return setCorsHeaders(NextResponse.json({ error: "Errore interno del server" }, { status: 500 }), req);
@@ -153,15 +158,11 @@ export async function GET(req: NextRequest) {
 }
 
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
+export async function OPTIONS(req: NextRequest) {
+  const response = new NextResponse(null, { status: 204 });
+
+  return setCorsHeaders(response, req);
 }
+
 
 
