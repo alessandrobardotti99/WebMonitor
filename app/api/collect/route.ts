@@ -12,13 +12,15 @@ const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
 
 function setCorsHeaders(response: NextResponse, req: NextRequest) {
+  const allowedOrigins = ["https://web-monitor-eta.vercel.app"];
   const origin = req.headers.get("origin");
 
-  if (!origin) {
-    return response; 
+  if (origin && allowedOrigins.includes(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+  } else {
+    response.headers.set("Access-Control-Allow-Origin", "https://web-monitor-eta.vercel.app");
   }
 
-  response.headers.set("Access-Control-Allow-Origin", origin);
   response.headers.set("Vary", "Origin");
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -26,6 +28,7 @@ function setCorsHeaders(response: NextResponse, req: NextRequest) {
 
   return response;
 }
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -307,13 +310,17 @@ export async function GET(req: NextRequest) {
   }
 }
 
-
-
 export async function OPTIONS(req: NextRequest) {
   const response = new NextResponse(null, { status: 204 });
 
-  return setCorsHeaders(response, req);
+  response.headers.set("Access-Control-Allow-Origin", "https://web-monitor-eta.vercel.app");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+
+  return response;
 }
+
 
 
 
