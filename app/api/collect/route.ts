@@ -30,7 +30,9 @@ function setCorsHeaders(response: NextResponse, req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body: MonitoringData = await req.json();
+    console.log(`🕒 Valore loadTime ricevuto: ${body.data.loadTime}`);
 
+    
     if (!body.siteId) {
       return NextResponse.json({ error: "siteId è richiesto" }, { status: 400 });
     }
