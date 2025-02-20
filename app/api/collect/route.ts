@@ -12,13 +12,12 @@ const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
 
 function setCorsHeaders(response: NextResponse, req: NextRequest) {
-  const allowedOrigins = ["https://web-monitor-eta.vercel.app"];
   const origin = req.headers.get("origin");
 
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin) {
     response.headers.set("Access-Control-Allow-Origin", origin);
   } else {
-    response.headers.set("Access-Control-Allow-Origin", "https://web-monitor-eta.vercel.app");
+    response.headers.set("Access-Control-Allow-Origin", "https://web-monitor-eta.vercel.app"); 
   }
 
   response.headers.set("Vary", "Origin");
@@ -28,6 +27,7 @@ function setCorsHeaders(response: NextResponse, req: NextRequest) {
 
   return response;
 }
+
 
 
 export async function POST(req: NextRequest) {
