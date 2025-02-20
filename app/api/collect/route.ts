@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
     const body: MonitoringData = await req.json();
     console.log(`🕒 Valore loadTime ricevuto: ${body.data.loadTime}`);
 
-    
     if (!body.siteId) {
       return NextResponse.json({ error: "siteId è richiesto" }, { status: 400 });
     }
@@ -42,7 +41,6 @@ export async function POST(req: NextRequest) {
       parsedSiteId = uuidv4();
     }
 
-    // 🔍 Recupero URL del sito
     let siteUrl = body.data.url?.trim();
     if (!siteUrl) {
       siteUrl = req.headers.get("referer") || req.headers.get("origin") || "http://localhost:3000";
@@ -50,30 +48,22 @@ export async function POST(req: NextRequest) {
 
     console.log(`🌍 URL rilevato: ${siteUrl}`);
 
-    // ✅ Controllo se il cookie contiene già lo `siteId`
+    // ✅ Controllo se il cookie contiene già il `siteId`
     const cookies = req.cookies.get(COOKIE_NAME);
     if (cookies && cookies.value.includes(parsedSiteId)) {
       console.log(`🚫 Dati già inviati per il sito ${parsedSiteId}, salto l'inserimento.`);
       return NextResponse.json({ success: false, message: "Dati già raccolti di recente" }, { status: 200 });
     }
 
-    // ✅ Controllo se il sito esiste tramite `monitoringCode`
-    let existingSite = await db.select().from(sites).where(eq(sites.monitoringCode, body.siteId)).limit(1);
+    const existingSite = await db.select().from(sites).where(eq(sites.monitoringCode, body.siteId)).limit(1);
 
     if (existingSite.length > 0) {
-      console.log(`🔄 Il sito con monitoringCode ${body.siteId} esiste già, aggiornamento...`);
-
       await db.update(sites)
-        .set({
-          url: siteUrl,
-          lastUpdate: sql`now()`,
-        })
+        .set({ url: siteUrl, lastUpdate: sql`now()` })
         .where(eq(sites.monitoringCode, body.siteId));
 
       parsedSiteId = existingSite[0].id;
     } else {
-      console.log(`🆕 Il sito con monitoringCode ${body.siteId} non esiste, creazione...`);
-
       const testUser = await db.select().from(users).limit(1);
       const userId = testUser.length > 0 ? testUser[0].id : uuidv4();
 
@@ -89,17 +79,63 @@ export async function POST(req: NextRequest) {
       console.log(`✅ Sito creato con ID: ${parsedSiteId} e URL: ${siteUrl}`);
     }
 
-    // ✅ Inseriamo le metriche di performance
-    await db.insert(performanceMetrics).values({
-      siteId: parsedSiteId,
-      time: new Date(body.timestamp).toISOString(),
-      loadTime: body.data.loadTime,
-    });
+    // ✅ Evita duplicati su metriche di performance
+    const existingPerformance = await db
+      .select()
+      .from(performanceMetrics)
+      .where(eq(performanceMetrics.siteId, parsedSiteId))
+      .orderBy(desc(performanceMetrics.createdAt))
+      .limit(1);
 
-    // ✅ Inseriamo errori JavaScript
-    if (body.data.errors.length > 0) {
+    if (
+      existingPerformance.length === 0 ||
+      existingPerformance[0].loadTime !== body.data.loadTime
+    ) {
+      await db.insert(performanceMetrics).values({
+        siteId: parsedSiteId,
+        time: new Date(body.timestamp).toISOString(),
+        loadTime: body.data.loadTime,
+      });
+    }
+
+    // ✅ Evita duplicati nei log della console
+    const existingConsoleEntries = await db
+      .select()
+      .from(consoleEntries)
+      .where(eq(consoleEntries.siteId, parsedSiteId))
+      .orderBy(desc(consoleEntries.timestamp))
+      .limit(50);
+
+    const uniqueConsoleEntries = body.data.consoleEntries.filter(
+      (entry) => !existingConsoleEntries.some((e) => e.message === entry.message && e.type === entry.type)
+    );
+
+    if (uniqueConsoleEntries.length > 0) {
+      await db.insert(consoleEntries).values(
+        uniqueConsoleEntries.map((entry) => ({
+          siteId: parsedSiteId,
+          type: entry.type,
+          message: entry.message,
+          timestamp: new Date(entry.timestamp),
+        }))
+      );
+    }
+
+    // ✅ Evita duplicati negli errori JavaScript
+    const existingErrors = await db
+      .select()
+      .from(errors)
+      .where(eq(errors.siteId, parsedSiteId))
+      .orderBy(desc(errors.timestamp))
+      .limit(50);
+
+    const uniqueErrors = body.data.errors.filter(
+      (error) => !existingErrors.some((e) => e.message === error.message && e.filename === error.filename)
+    );
+
+    if (uniqueErrors.length > 0) {
       await db.insert(errors).values(
-        body.data.errors.map((error) => ({
+        uniqueErrors.map((error) => ({
           siteId: parsedSiteId,
           type: "JS Error",
           message: error.message,
@@ -110,22 +146,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Inseriamo log della console
-    if (body.data.consoleEntries.length > 0) {
-      await db.insert(consoleEntries).values(
-        body.data.consoleEntries.map((entry) => ({
-          siteId: parsedSiteId,
-          type: entry.type,
-          message: entry.message,
-          timestamp: new Date(entry.timestamp),
-        }))
-      );
-    }
+    // ✅ Evita duplicati nelle immagini con problemi
+    const existingImageIssues = await db
+      .select()
+      .from(imageIssues)
+      .where(eq(imageIssues.siteId, parsedSiteId))
+      .orderBy(desc(imageIssues.createdAt))
+      .limit(50);
 
-    // ✅ Inseriamo problemi con le immagini
-    if (body.data.imageIssues.length > 0) {
+    const uniqueImageIssues = body.data.imageIssues.filter(
+      (issue) => !existingImageIssues.some((i) => i.url === issue.url)
+    );
+
+    if (uniqueImageIssues.length > 0) {
       await db.insert(imageIssues).values(
-        body.data.imageIssues.map((issue) => ({
+        uniqueImageIssues.map((issue) => ({
           siteId: parsedSiteId,
           url: issue.url,
           originalSize: JSON.stringify(issue.originalSize),
@@ -134,10 +169,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Inseriamo le risorse caricate (CSS, JS, immagini, ecc.)
-    if (body.data.resources.length > 0) {
+    // ✅ Evita duplicati nelle risorse caricate
+    const existingResources = await db
+      .select()
+      .from(resources)
+      .where(eq(resources.siteId, parsedSiteId))
+      .orderBy(desc(resources.createdAt))
+      .limit(50);
+
+    const uniqueResources = body.data.resources.filter(
+      (resource) => !existingResources.some((r) => r.name === resource.name)
+    );
+
+    if (uniqueResources.length > 0) {
       await db.insert(resources).values(
-        body.data.resources.map((resource) => ({
+        uniqueResources.map((resource) => ({
           siteId: parsedSiteId,
           name: resource.name,
           type: resource.type,
