@@ -10,23 +10,31 @@ import { authOptions } from "@/lib/auth";
 const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
 
+function setCorsHeaders(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  return response;
+}
+
+
 export async function POST(req: NextRequest) {
   try {
     const body: MonitoringData = await req.json();
 
     if (!body.siteId) {
-      return NextResponse.json({ error: "siteId è richiesto" }, { status: 400 });
+      return setCorsHeaders(NextResponse.json({ error: "siteId è richiesto" }, { status: 400 }));
     }
 
     let parsedSiteId = body.siteId.replace("wm_", "");
     if (!isUUID(parsedSiteId)) {
-      parsedSiteId = uuidv4(); 
+      parsedSiteId = uuidv4();
     }
 
     const cookies = req.cookies.get(COOKIE_NAME);
     if (cookies && cookies.value.includes(parsedSiteId)) {
       console.log(`🚫 Dati già inviati per il sito ${parsedSiteId}, salto l'inserimento.`);
-      return NextResponse.json({ success: false, message: "Dati già raccolti di recente" }, { status: 200 });
+      return setCorsHeaders(NextResponse.json({ success: false, message: "Dati già raccolti di recente" }, { status: 200 }));
     }
 
     let siteExists = await db.select().from(sites).where(eq(sites.id, parsedSiteId)).limit(1);
@@ -41,7 +49,7 @@ export async function POST(req: NextRequest) {
         id: parsedSiteId,
         userId: userId,
         slug: `test-${parsedSiteId}`,
-        url: body.data.url || "http://localhost:3000", 
+        url: body.data.url || "http://localhost:3000",
         monitoringCode: body.siteId,
         status: "warning",
       });
@@ -94,23 +102,24 @@ export async function POST(req: NextRequest) {
 
     response.cookies.set(COOKIE_NAME, parsedSiteId, {
       path: "/",
-      maxAge: COOKIE_EXPIRATION, 
+      maxAge: COOKIE_EXPIRATION,
       httpOnly: true,
     });
 
-    return response;
+    return setCorsHeaders(response);
 
   } catch (error) {
     console.error("❌ Errore API /collect:", error);
-    return NextResponse.json({ error: "Errore interno del server" }, { status: 500 });
+    return setCorsHeaders(NextResponse.json({ error: "Errore interno del server" }, { status: 500 }));
   }
 }
+
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
-      return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+      return setCorsHeaders(NextResponse.json({ error: "Non autorizzato" }, { status: 401 }));
     }
 
     console.log(`🔍 Recupero solo i siti di proprietà dell'utente: ${session.user.id}`);
@@ -121,7 +130,7 @@ export async function GET(req: NextRequest) {
       .where(eq(sites.userId, session.user.id));
 
     if (userSites.length === 0) {
-      return NextResponse.json([], { status: 200 });
+      return setCorsHeaders(NextResponse.json([], { status: 200 }));
     }
 
     const response = userSites.map(site => ({
@@ -133,10 +142,15 @@ export async function GET(req: NextRequest) {
       lastUpdate: site.lastUpdate ? new Date(site.lastUpdate).toISOString() : null,
     }));
 
-    return NextResponse.json(response, { status: 200 });
+    return setCorsHeaders(NextResponse.json(response, { status: 200 }));
 
   } catch (error) {
     console.error("❌ Errore API /collect/sites:", error);
-    return NextResponse.json({ error: "Errore interno del server" }, { status: 500 });
+    return setCorsHeaders(NextResponse.json({ error: "Errore interno del server" }, { status: 500 }));
   }
 }
+
+export async function OPTIONS() {
+  return setCorsHeaders(NextResponse.json({}, { status: 200 }));
+}
+
