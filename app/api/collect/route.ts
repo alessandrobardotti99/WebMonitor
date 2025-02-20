@@ -6,6 +6,7 @@ import { MonitoringData } from "@/lib/api-types";
 import { v4 as uuidv4, validate as isUUID } from "uuid";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { sql } from "drizzle-orm/sql";
 
 const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
@@ -26,7 +27,6 @@ function setCorsHeaders(response: NextResponse, req: NextRequest) {
   return response;
 }
 
-
 export async function POST(req: NextRequest) {
   try {
     const body: MonitoringData = await req.json();
@@ -46,10 +46,23 @@ export async function POST(req: NextRequest) {
       return setCorsHeaders(NextResponse.json({ success: false, message: "Dati già raccolti di recente" }, { status: 200 }), req);
     }
 
-    let siteExists = await db.select().from(sites).where(eq(sites.id, parsedSiteId)).limit(1);
+    const siteUrl = body.data.url || "http://localhost:3000";
 
-    if (siteExists.length === 0) {
-      console.log(`🔍 Il sito con ID ${parsedSiteId} non esiste. Creazione di un sito di test...`);
+    let existingSite = await db.select().from(sites).where(eq(sites.monitoringCode, body.siteId)).limit(1);
+
+    if (existingSite.length > 0) {
+      console.log(`🔄 Il sito con monitoringCode ${body.siteId} esiste già, aggiornamento...`);
+
+      await db.update(sites)
+        .set({
+          url: siteUrl,
+          lastUpdate: sql`now()`,
+        })
+        .where(eq(sites.monitoringCode, body.siteId));
+
+      parsedSiteId = existingSite[0].id;
+    } else {
+      console.log(`🆕 Il sito con monitoringCode ${body.siteId} non esiste, creazione...`);
 
       const testUser = await db.select().from(users).limit(1);
       const userId = testUser.length > 0 ? testUser[0].id : uuidv4();
@@ -58,20 +71,22 @@ export async function POST(req: NextRequest) {
         id: parsedSiteId,
         userId: userId,
         slug: `test-${parsedSiteId}`,
-        url: body.data.url || "http://localhost:3000",
+        url: siteUrl,
         monitoringCode: body.siteId,
         status: "warning",
       });
 
-      console.log(`✅ Sito di test creato con ID: ${parsedSiteId}`);
+      console.log(`✅ Sito creato con ID: ${parsedSiteId}`);
     }
 
+    // ✅ Inserisci metriche di performance
     await db.insert(performanceMetrics).values({
       siteId: parsedSiteId,
       time: new Date(body.timestamp).toISOString(),
       loadTime: body.data.loadTime,
     });
 
+    // ✅ Inserisci errori JavaScript se presenti
     if (body.data.errors.length > 0) {
       await db.insert(errors).values(
         body.data.errors.map((error) => ({
@@ -85,6 +100,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ✅ Inserisci log della console se presenti
     if (body.data.consoleEntries.length > 0) {
       await db.insert(consoleEntries).values(
         body.data.consoleEntries.map((entry) => ({
@@ -96,6 +112,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ✅ Inserisci problemi con le immagini se presenti
     if (body.data.imageIssues.length > 0) {
       await db.insert(imageIssues).values(
         body.data.imageIssues.map((issue) => ({
@@ -122,6 +139,7 @@ export async function POST(req: NextRequest) {
     return setCorsHeaders(NextResponse.json({ error: "Errore interno del server" }, { status: 500 }), req);
   }
 }
+
 
 export async function GET(req: NextRequest) {
   try {
