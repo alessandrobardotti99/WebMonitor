@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/";
-import { sites, performanceMetrics, errors, consoleEntries, imageIssues } from "@/db/schema";
+import { sites, performanceMetrics, errors, consoleEntries, imageIssues, resources } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { Site } from "@/lib/api-types";
 
@@ -17,11 +17,27 @@ export async function GET(req: NextRequest, { params }: { params: { monitoringCo
 
     // ✅ Recupera le metriche di performance (ultimi dati più recenti)
     const performanceData = await db
-      .select()
-      .from(performanceMetrics)
-      .where(eq(performanceMetrics.siteId, site.id))
-      .orderBy(desc(performanceMetrics.createdAt))
-      .limit(100);
+    .select({
+      time: performanceMetrics.createdAt,
+      loadTime: performanceMetrics.loadTime
+    })
+    .from(performanceMetrics)
+    .where(eq(performanceMetrics.siteId, site.id))
+    .orderBy(desc(performanceMetrics.createdAt))
+    .limit(100);
+  
+  // Assicuriamoci che loadTime sia sempre un numero valido (mai null)
+  const formattedPerformanceData = performanceData.map(entry => ({
+    time: entry.time ? new Date(entry.time).toISOString().slice(11, 16) : "", // Formattiamo l'orario per il grafico
+    loadTime: entry.loadTime ?? 0  // Imposta 0 se loadTime è null
+  }));
+  
+  // Passiamo i dati formattati alla risposta API
+  const siteResponse = {
+    ...site,
+    performanceData: formattedPerformanceData
+  };
+  
 
     // ✅ Recupera gli errori JavaScript
     const jsErrors = await db
@@ -47,13 +63,21 @@ export async function GET(req: NextRequest, { params }: { params: { monitoringCo
       .orderBy(desc(imageIssues.createdAt))
       .limit(100);
 
+    // ✅ Recupera le risorse caricate
+    const resourceData = await db
+      .select()
+      .from(resources)
+      .where(eq(resources.siteId, site.id))
+      .orderBy(desc(resources.createdAt))
+      .limit(100);
+
     // ✅ Costruisce l'oggetto di risposta con i dati formattati
     const response: Site = {
       id: site.id,
       slug: site.slug,
       url: site.url,
       monitoringCode: site.monitoringCode,
-      status: site.status,
+      status: site.status as "error" | "healthy" | "warning",
       lastUpdate: site.lastUpdate ? new Date(site.lastUpdate).toISOString() : null,
       metrics: {
         loadTime: performanceData.length > 0 ? performanceData[0].loadTime : 0,
@@ -74,9 +98,15 @@ export async function GET(req: NextRequest, { params }: { params: { monitoringCo
           originalSize: typeof issue.originalSize === "string" ? JSON.parse(issue.originalSize) : issue.originalSize,
           displaySize: typeof issue.displaySize === "string" ? JSON.parse(issue.displaySize) : issue.displaySize,
         })),
+        resources: resourceData.map(resource => ({
+          name: resource.name,
+          type: resource.type,
+          duration: resource.duration,
+          size: resource.size,
+        })),
       },
       performanceData: performanceData.map(entry => ({
-        time: new Date(entry.time).toISOString().slice(11, 16),
+        time: entry.time ? new Date(entry.time).toISOString().slice(11, 16) : "",
         loadTime: entry.loadTime,
       })),
     };

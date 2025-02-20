@@ -41,7 +41,7 @@ export interface Site {
   slug: string;
   url: string;
   monitoringCode: string;
-  status: string;
+  status: "healthy" | "warning" | "error";
   lastUpdate: string | null;
   metrics: {
     loadTime: number;
@@ -53,7 +53,7 @@ export interface Site {
       timestamp: string;
     }[];
     consoleEntries: {
-      type: 'log' | 'info' | 'warn' | 'error';
+      type: "log" | "info" | "warn" | "error";
       message: string;
       timestamp: string;
     }[];
@@ -62,12 +62,19 @@ export interface Site {
       originalSize: { width: number; height: number };
       displaySize: { width: number; height: number };
     }[];
+    resources: {
+      name: string;
+      type: string;
+      duration: number;
+      size: number;
+    }[];
   };
   performanceData: {
     time: string;
     loadTime: number;
   }[];
 }
+
 
 
 export interface SiteMetrics {

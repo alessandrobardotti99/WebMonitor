@@ -123,6 +123,17 @@ export default function SiteDetailPage() {
     fetchSiteData();
   }, [monitoringCode]);
 
+  const performanceChartData = site?.performanceData?.map(entry => ({
+    time: entry.time,
+    loadTime: entry.loadTime
+  })) || [];
+
+  const resourceChartData = site?.metrics?.resources?.map((resource) => ({
+    name: resource.name.split('/').pop(), // Usa il nome effettivo del file
+    duration: resource.duration
+  })) || [];
+  
+
   const getScriptCode = (site: Site) => `
 <!-- Add this code just before closing </body> tag -->
 <script>
@@ -247,6 +258,9 @@ export default function RootLayout({ children }) {
     ></script>
 @endpush`
 
+
+
+
   const handleExportData = () => {
     if (!site) return;
 
@@ -274,6 +288,8 @@ export default function RootLayout({ children }) {
       </div>
     )
   }
+
+  
 
   if (error || !site) {
     return (
@@ -387,48 +403,52 @@ export default function RootLayout({ children }) {
               <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="errors">Errors & Issues</TabsTrigger>
             </TabsList>
+
+            {/* 🔥 Grafico della performance generale */}
             <TabsContent value="performance">
               <div className="h-[300px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={site.performanceData}>
+                  <LineChart data={performanceChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />
                     <YAxis />
                     <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="loadTime"
-                      stroke="hsl(var(--chart-1))"
-                      name="Load Time (s)"
-                    />
+                    <Line type="monotone" dataKey="loadTime" stroke="hsl(var(--chart-1))" name="Load Time (s)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* 🔥 Grafico delle risorse caricate */}
+              <div className="h-[300px] mt-8">
+                <h2 className="text-lg font-semibold">Caricamento Risorse</h2>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={resourceChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="duration" stroke="hsl(var(--chart-2))" name="Caricamento (ms)" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
+
+            {/* 🔥 Grafico degli errori */}
             <TabsContent value="errors">
               <div className="h-[300px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={site.performanceData}>
+                  <LineChart data={performanceChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />
                     <YAxis />
                     <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="errors"
-                      stroke="hsl(var(--chart-2))"
-                      name="Errors"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="imageIssues"
-                      stroke="hsl(var(--chart-3))"
-                      name="Image Issues"
-                    />
+                    <Line type="monotone" dataKey="errors" stroke="hsl(var(--chart-3))" name="Errors" />
+                    <Line type="monotone" dataKey="imageIssues" stroke="hsl(var(--chart-4))" name="Image Issues" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
+
           </Tabs>
         </CardContent>
       </Card>
