@@ -11,10 +11,15 @@ const COOKIE_NAME = "webmonitor-tracking";
 const COOKIE_EXPIRATION = 10 * 60; 
 
 function setCorsHeaders(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  return response;
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*"); // Cambia "*" con un dominio specifico se necessario
+  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  return new NextResponse(response.body, {
+    status: response.status,
+    headers,
+  });
 }
 
 
@@ -114,7 +119,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -150,7 +154,16 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
 export async function OPTIONS() {
-  return setCorsHeaders(NextResponse.json({}, { status: 200 }));
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
 }
+
 
