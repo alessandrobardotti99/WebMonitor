@@ -62,3 +62,15 @@ export const imageIssues = pgTable("image_issues", {
   displaySize: jsonb("display_size").notNull(),  // { width: 480, height: 270 }
   createdAt: timestamp("created_at").default(sql`now()`),
 });
+
+// Tabella per le risorse caricate (CSS, JS, immagini, ecc.)
+export const resources = pgTable("resources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  siteId: uuid("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }), 
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  duration: real("duration").notNull(),
+  size: integer("size").notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
