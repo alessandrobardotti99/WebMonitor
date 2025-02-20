@@ -40,14 +40,17 @@ export async function POST(req: NextRequest) {
       parsedSiteId = uuidv4();
     }
 
-    const cookies = req.cookies.get(COOKIE_NAME);
-    if (cookies && cookies.value.includes(parsedSiteId)) {
-      console.log(`🚫 Dati già inviati per il sito ${parsedSiteId}, salto l'inserimento.`);
-      return setCorsHeaders(NextResponse.json({ success: false, message: "Dati già raccolti di recente" }, { status: 200 }), req);
+    // ✅ Prendere l'URL corretto, se non è presente usa il referrer come fallback
+    let siteUrl = body.data.url?.trim();
+
+    if (!siteUrl) {
+      siteUrl = req.headers.get("referer") || req.headers.get("origin") || "http://localhost:3000";
+      console.log(`⚠️ Nessuna URL trovata nel body, uso il referrer/origin: ${siteUrl}`);
     }
 
-    const siteUrl = body.data.url || "http://localhost:3000";
+    console.log(`🌍 URL rilevato: ${siteUrl}`);
 
+    // ✅ Controlliamo se esiste già un sito con il monitoringCode
     let existingSite = await db.select().from(sites).where(eq(sites.monitoringCode, body.siteId)).limit(1);
 
     if (existingSite.length > 0) {
@@ -76,17 +79,17 @@ export async function POST(req: NextRequest) {
         status: "warning",
       });
 
-      console.log(`✅ Sito creato con ID: ${parsedSiteId}`);
+      console.log(`✅ Sito creato con ID: ${parsedSiteId} e URL: ${siteUrl}`);
     }
 
-    // ✅ Inserisci metriche di performance
+    // ✅ Inseriamo le metriche di performance
     await db.insert(performanceMetrics).values({
       siteId: parsedSiteId,
       time: new Date(body.timestamp).toISOString(),
       loadTime: body.data.loadTime,
     });
 
-    // ✅ Inserisci errori JavaScript se presenti
+    // ✅ Inseriamo errori JavaScript se presenti
     if (body.data.errors.length > 0) {
       await db.insert(errors).values(
         body.data.errors.map((error) => ({
@@ -100,7 +103,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Inserisci log della console se presenti
+    // ✅ Inseriamo log della console se presenti
     if (body.data.consoleEntries.length > 0) {
       await db.insert(consoleEntries).values(
         body.data.consoleEntries.map((entry) => ({
@@ -112,7 +115,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Inserisci problemi con le immagini se presenti
+    // ✅ Inseriamo problemi con le immagini se presenti
     if (body.data.imageIssues.length > 0) {
       await db.insert(imageIssues).values(
         body.data.imageIssues.map((issue) => ({
@@ -139,6 +142,8 @@ export async function POST(req: NextRequest) {
     return setCorsHeaders(NextResponse.json({ error: "Errore interno del server" }, { status: 500 }), req);
   }
 }
+
+
 
 
 export async function GET(req: NextRequest) {
