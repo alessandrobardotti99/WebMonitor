@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import SkeletonLoader from './skeleton-loader-detail-page'
 import Image from 'next/image'
 import {
   AlertCircle,
@@ -268,11 +269,8 @@ export default function RootLayout({ children }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Caricamento dati...</p>
-        </div>
+      <div>
+        <SkeletonLoader />
       </div>
     )
   }

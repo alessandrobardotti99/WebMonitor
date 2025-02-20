@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
 import { motion } from "framer-motion";
 import FooterDashboard from "@/components/footer-dashboard";
+import SitesSkeleton from "@/components/skeleton-all-site";
 
 interface Site {
   id: string;
@@ -80,7 +81,9 @@ export default function DashboardPage() {
             </div>
 
             {loading ? (
-              <p>Caricamento...</p>
+              <div>
+                <SitesSkeleton />
+              </div>
             ) : error ? (
               <p className="text-red-500">{error}</p>
             ) : (
