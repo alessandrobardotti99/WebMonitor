@@ -5,6 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SkeletonLoader from './skeleton-loader-detail-page'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import FooterDashboard from './footer-dashboard'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 import Image from 'next/image'
 import {
   AlertCircle,
@@ -97,7 +106,7 @@ export default function SiteDetailPage() {
   console.log("🔍 Params ricevuti:", params);
   const monitoringCode = params.slug as string;
   const [activeMetric, setActiveMetric] = useState<'performance' | 'errors'>('performance')
-  const [integrationMethod, setIntegrationMethod] = useState<'script' | 'cdn' | 'react' | 'vue' | 'next' | 'laravel'>('script')
+  const [integrationMethod, setIntegrationMethod] = useState<'script' | 'cdn' | 'react' | 'vue' | 'next' | 'laravel'>('cdn')
   const [site, setSite] = useState<Site | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -132,7 +141,7 @@ export default function SiteDetailPage() {
     name: resource.name.split('/').pop(), // Usa il nome effettivo del file
     duration: resource.duration
   })) || [];
-  
+
 
   const getScriptCode = (site: Site) => `
 <!-- Add this code just before closing </body> tag -->
@@ -148,7 +157,7 @@ export default function SiteDetailPage() {
 </script>`
 
   const getCdnCode = (site: Site) => `
-<!-- Add this code in the <head> tag -->
+<!-- Aggiungi questo codice nel tag <head> -->
 <script 
   src="https://web-monitor-eta.vercel.app/tracker.min.js" 
   data-site-id="${site.monitoringCode}"
@@ -289,7 +298,7 @@ export default function RootLayout({ children }) {
     )
   }
 
-  
+
 
   if (error || !site) {
     return (
@@ -310,477 +319,560 @@ export default function RootLayout({ children }) {
   }
 
   return (
-    <div className="space-y-6 container m-auto mt-16">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/siti-monitorati">
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <h1 className="text-2xl font-bold">{site.url}</h1>
-          <Badge className={getStatusColor(site.status)}>
-            {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
-          </Badge>
+    <>
+      <div className="space-y-6 container m-auto mt-16">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/siti-monitorati">
+              <ArrowLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="text-2xl font-bold">{site.url}</h1>
+            <Badge className={getStatusColor(site.status)}>
+              {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
+            </Badge>
+          </div>
+          <Button onClick={handleExportData}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Export Data
+          </Button>
         </div>
-        <Button onClick={handleExportData}>
-          <FileDown className="h-4 w-4 mr-2" />
-          Export Data
-        </Button>
-      </div>
 
-      {/* Update the metrics cards at the top */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Update the metrics cards at the top */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Tempo di Caricamento Medio ⚡️
+              </CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{site.metrics.loadTime.toFixed(2)}s</div>
+              <p className="text-xs text-muted-foreground">
+                +0.1s dall&apos;ultima ora
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Errori JavaScript 🐛
+              </CardTitle>
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{site.metrics.errors.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {site.metrics.errors.length > 0 ? '+' : '-'}
+                {site.metrics.errors.length} dall&apos;ultima ora
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Problemi Immagini 🖼️
+              </CardTitle>
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{site.metrics.imageIssues.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {site.metrics.imageIssues.length > 0 ? '+' : '-'}
+                {site.metrics.imageIssues.length} dall&apos;ultima ora
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Log Console 📝
+              </CardTitle>
+              <Terminal className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{site.metrics.consoleEntries.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {site.metrics.consoleEntries.length > 0 ? '+' : '-'}
+                {site.metrics.consoleEntries.length} dall&apos;ultima ora
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tempo di Caricamento Medio ⚡️
-            </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <CardTitle>Caricamento Risorse 📊</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{site.metrics.loadTime.toFixed(2)}s</div>
-            <p className="text-xs text-muted-foreground">
-              +0.1s dall&apos;ultima ora
-            </p>
+            <Tabs value={activeMetric} onValueChange={(v) => setActiveMetric(v as 'performance' | 'errors')}>
+              {/* 🔥 Grafico della performance generale */}
+              <TabsContent value="performance">
+                {/* 🔥 Grafico delle risorse caricate */}
+                <div className="h-[300px] mt-8">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={resourceChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="duration" stroke="hsl(var(--chart-2))" name="Caricamento (ms)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </TabsContent>
+
+              {/* 🔥 Grafico degli errori */}
+              <TabsContent value="errors">
+                <div className="h-[300px] mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={performanceChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="errors" stroke="hsl(var(--chart-3))" name="Errors" />
+                      <Line type="monotone" dataKey="imageIssues" stroke="hsl(var(--chart-4))" name="Image Issues" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </TabsContent>
+
+            </Tabs>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Errori JavaScript 🐛
-            </CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{site.metrics.errors.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {site.metrics.errors.length > 0 ? '+' : '-'}
-              {site.metrics.errors.length} dall&apos;ultima ora
-            </p>
-          </CardContent>
-        </Card>
+        {/* In the grid section for the three monitoring cards, update to: */}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Problemi Immagini 🖼️
-            </CardTitle>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{site.metrics.imageIssues.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {site.metrics.imageIssues.length > 0 ? '+' : '-'}
-              {site.metrics.imageIssues.length} dall&apos;ultima ora
-            </p>
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Code2 className="h-5 w-5 text-primary" />
+                Errori JavaScript recenti
+              </CardTitle>
+              <Badge
+                variant={
+                  site.metrics.errors.length > 7
+                    ? "destructive"
+                    : site.metrics.errors.length > 3
+                      ? "warning"
+                      : site.metrics.errors.length === 0
+                        ? "success"
+                        : "secondary"
+                }
+                className="font-medium"
+              >
+                {site.metrics.errors.length} errori
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[300px]">
+                {site.metrics.errors.length > 0 ? (
+                  <div className="space-y-4">
+                    {site.metrics.errors.map((error, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="group relative p-4 bg-destructive/5 hover:bg-destructive/10 rounded-lg border border-destructive/20 transition-all"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <p className="font-medium text-destructive flex items-center gap-2">
+                              <AlertCircle className="h-4 w-4" />
+                              {error.type}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{error.message}</p>
+                          </div>
+                          <time className="text-xs text-muted-foreground">
+                            {new Date(error.timestamp).toLocaleTimeString()}
+                          </time>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-destructive/10 text-xs text-muted-foreground flex items-center gap-2">
+                          <FileCode className="h-4 w-4" />
+                          <span>
+                            {error.filename}:{error.lineNumber}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-green-600 dark:text-green-400">
+                    ✅ Nessun errore JavaScript rilevato!
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Log Console 📝
-            </CardTitle>
-            <Terminal className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{site.metrics.consoleEntries.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {site.metrics.consoleEntries.length > 0 ? '+' : '-'}
-              {site.metrics.consoleEntries.length} dall&apos;ultima ora
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Caricamento Risorse 📊</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeMetric} onValueChange={(v) => setActiveMetric(v as 'performance' | 'errors')}>
-            {/* 🔥 Grafico della performance generale */}
-            <TabsContent value="performance">
-              {/* 🔥 Grafico delle risorse caricate */}
-              <div className="h-[300px] mt-8">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={resourceChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="duration" stroke="hsl(var(--chart-2))" name="Caricamento (ms)" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </TabsContent>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Terminal className="h-5 w-5 text-primary" />
+                Log della console
+              </CardTitle>
+              <Badge
+                variant={
+                  site.metrics.consoleEntries.length > 7
+                    ? "destructive"
+                    : site.metrics.consoleEntries.length > 3
+                      ? "warning"
+                      : site.metrics.consoleEntries.length === 0
+                        ? "success"
+                        : "secondary"
+                }
+                className="font-medium"
+              >
+                {site.metrics.consoleEntries.length} log
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[300px]">
+                {site.metrics.consoleEntries.length > 0 ? (
+                  <div className="space-y-2">
+                    {site.metrics.consoleEntries.map((entry, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`p-3 rounded-lg font-mono text-sm border ${entry.type === "error"
+                            ? "bg-destructive/5 border-destructive/20"
+                            : entry.type === "warn"
+                              ? "bg-yellow-500/5 border-yellow-500/20"
+                              : entry.type === "info"
+                                ? "bg-blue-500/5 border-blue-500/20"
+                                : "bg-muted border-muted-foreground/20"
+                          }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className={`flex-1 ${getConsoleEntryColor(entry.type)}`}>
+                            <div className="flex items-center gap-2">
+                              {entry.type === "error" && <AlertCircle className="h-4 w-4" />}
+                              {entry.type === "warn" && <AlertTriangle className="h-4 w-4" />}
+                              {entry.type === "info" && <Info className="h-4 w-4" />}
+                              {entry.type === "log" && <Terminal className="h-4 w-4" />}
+                              {entry.message}
+                            </div>
+                          </div>
+                          <time className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(entry.timestamp).toLocaleTimeString()}
+                          </time>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-green-600 dark:text-green-400">
+                    ✅ Nessun log problematico trovato!
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-            {/* 🔥 Grafico degli errori */}
-            <TabsContent value="errors">
-              <div className="h-[300px] mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={performanceChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="errors" stroke="hsl(var(--chart-3))" name="Errors" />
-                    <Line type="monotone" dataKey="imageIssues" stroke="hsl(var(--chart-4))" name="Image Issues" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </TabsContent>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                Ottimizzazione immagini
+              </CardTitle>
+              <Badge
+                variant={
+                  site.metrics.imageIssues.length + 1 > 7
+                    ? "destructive"
+                    : site.metrics.imageIssues.length + 1 > 3
+                      ? "warning"
+                      : site.metrics.imageIssues.length + 1 === 1
+                        ? "success"
+                        : "secondary"
+                }
+                className="font-medium"
+              >
+                {site.metrics.imageIssues.length + 1} problemi
+              </Badge>
 
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* In the grid section for the three monitoring cards, update to: */}
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Code2 className="h-5 w-5 text-destructive" />
-              Errori JavaScript Recenti
-            </CardTitle>
-            <Badge variant="destructive" className="font-medium">
-              {site.metrics.errors.length} errori
-            </Badge>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-4">
-                {site.metrics.errors.map((error, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="group relative p-4 bg-destructive/5 hover:bg-destructive/10 rounded-lg border border-destructive/20 transition-all"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <p className="font-medium text-destructive flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4" />
-                          {error.type}
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[300px]">
+              {site.metrics.consoleEntries.length > 0 ? (
+                <div className="space-y-4">
+                  {site.metrics.imageIssues.map((issue, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group p-4 bg-muted/50 hover:bg-muted rounded-lg border transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4" />
+                            {issue.url.split('/').pop()}
+                          </h4>
+                          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium">Dimensione Originale:</span>
+                              <Badge variant="outline">
+                                {issue.originalSize.width}x{issue.originalSize.height}px
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium">Dimensione Display:</span>
+                              <Badge variant="outline">
+                                {issue.displaySize.width}x{issue.displaySize.height}px
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={issue.originalSize.width > issue.displaySize.width * 2 ? "destructive" : "secondary"}
+                            className="whitespace-nowrap"
+                          >
+                            {issue.originalSize.width > issue.displaySize.width * 2
+                              ? 'Ridimensiona'
+                              : 'Aumenta Risoluzione'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
+                        <p className="font-medium">
+                          Suggerimento: {
+                            issue.originalSize.width > issue.displaySize.width * 2
+                              ? 'L\'immagine è troppo grande per il display. Riduci le dimensioni per migliorare le prestazioni.'
+                              : 'L\'immagine potrebbe apparire sfocata. Considera l\'utilizzo di una versione a risoluzione maggiore.'
+                          }
                         </p>
-                        <p className="text-sm text-muted-foreground">{error.message}</p>
                       </div>
-                      <time className="text-xs text-muted-foreground">
-                        {new Date(error.timestamp).toLocaleTimeString()}
-                      </time>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-destructive/10 text-xs text-muted-foreground flex items-center gap-2">
-                      <FileCode className="h-4 w-4" />
-                      <span>
-                        {error.filename}:{error.lineNumber}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                  <div className="flex items-center justify-center h-full text-green-600 dark:text-green-400">
+                    ✅ Nessuna immagine problematica!
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
 
+
+        <Accordion type="single" collapsible>
+  <AccordionItem value="item-1" className='border p-3 rounded-xl'>
+    <AccordionTrigger className='text-3xl'>Metodi di installazione 🔧</AccordionTrigger>
+    <AccordionContent>         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Terminal className="h-5 w-5 text-primary" />
-              Log della Console
-            </CardTitle>
-            <Badge className="font-medium">
-              {site.metrics.consoleEntries.length} messaggi
-            </Badge>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-2">
-                {site.metrics.consoleEntries.map((entry, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className={`p-3 rounded-lg font-mono text-sm border ${entry.type === 'error' ? 'bg-destructive/5 border-destructive/20' :
-                      entry.type === 'warn' ? 'bg-yellow-500/5 border-yellow-500/20' :
-                        entry.type === 'info' ? 'bg-blue-500/5 border-blue-500/20' :
-                          'bg-muted border-muted-foreground/20'
-                      }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`flex-1 ${getConsoleEntryColor(entry.type)}`}>
-                        <div className="flex items-center gap-2">
-                          {entry.type === 'error' && <AlertCircle className="h-4 w-4" />}
-                          {entry.type === 'warn' && <AlertTriangle className="h-4 w-4" />}
-                          {entry.type === 'info' && <Info className="h-4 w-4" />}
-                          {entry.type === 'log' && <Terminal className="h-4 w-4" />}
-                          {entry.message}
-                        </div>
-                      </div>
-                      <time className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(entry.timestamp).toLocaleTimeString()}
-                      </time>
-                    </div>
-                  </motion.div>
-                ))}
+          <CardContent className="space-y-6">
+            <div className="border-b mb-6">
+              <div className="flex gap-2">
+                <Tab
+                  icon={CodeXml}
+                  label="CDN"
+                  isActive={integrationMethod === 'cdn'}
+                  onClick={() => setIntegrationMethod('cdn')}
+                />
+                <Tab
+                  iconSrc="/icon-language/icons8-javascript.svg"
+                  label="Script Tag"
+                  isActive={integrationMethod === 'script'}
+                  onClick={() => setIntegrationMethod('script')}
+                />
+                <Tab
+                  iconSrc="/icon-language/icons8-reagire.svg"
+                  label="React"
+                  isActive={integrationMethod === 'react'}
+                  onClick={() => setIntegrationMethod('react')}
+                />
+                <Tab
+                  iconSrc="/icon-language/icons8-vista-js.svg"
+                  label="Vue.js"
+                  isActive={integrationMethod === 'vue'}
+                  onClick={() => setIntegrationMethod('vue')}
+                />
+                <Tab
+                  iconSrc="/icon-language/icons8-nextjs.svg"
+                  label="Next.js"
+                  isActive={integrationMethod === 'next'}
+                  onClick={() => setIntegrationMethod('next')}
+                />
+                <Tab
+                  iconSrc="/icon-language/laravel-svgrepo-com.svg"
+                  label="Laravel"
+                  isActive={integrationMethod === 'laravel'}
+                  onClick={() => setIntegrationMethod('laravel')}
+                />
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5 text-blue-500" />
-              Ottimizzazione Immagini
-            </CardTitle>
-            <Badge variant="secondary" className="font-medium">
-              {site.metrics.imageIssues.length} problemi
-            </Badge>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-4">
-                {site.metrics.imageIssues.map((issue, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="group p-4 bg-muted/50 hover:bg-muted rounded-lg border transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm flex items-center gap-2">
-                          <ImageIcon className="h-4 w-4" />
-                          {issue.url.split('/').pop()}
-                        </h4>
-                        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium">Dimensione Originale:</span>
-                            <Badge variant="outline">
-                              {issue.originalSize.width}x{issue.originalSize.height}px
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium">Dimensione Display:</span>
-                            <Badge variant="outline">
-                              {issue.displaySize.width}x{issue.displaySize.height}px
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant={issue.originalSize.width > issue.displaySize.width * 2 ? "destructive" : "secondary"}
-                          className="whitespace-nowrap"
-                        >
-                          {issue.originalSize.width > issue.displaySize.width * 2
-                            ? 'Ridimensiona'
-                            : 'Aumenta Risoluzione'}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-                      <p className="font-medium">
-                        Suggerimento: {
-                          issue.originalSize.width > issue.displaySize.width * 2
-                            ? 'L\'immagine è troppo grande per il display. Riduci le dimensioni per migliorare le prestazioni.'
-                            : 'L\'immagine potrebbe apparire sfocata. Considera l\'utilizzo di una versione a risoluzione maggiore.'
-                        }
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Metodi di installazione 🔧</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="border-b mb-6">
-            <div className="flex gap-2">
-              <Tab
-               iconSrc="/icon-language/icons8-javascript.svg" 
-                label="Script Tag"
-                isActive={integrationMethod === 'script'}
-                onClick={() => setIntegrationMethod('script')}
-              />
-              <Tab
-                icon={CodeXml}
-                label="CDN"
-                isActive={integrationMethod === 'cdn'}
-                onClick={() => setIntegrationMethod('cdn')}
-              />
-              <Tab
-                 iconSrc="/icon-language/icons8-reagire.svg" 
-                label="React"
-                isActive={integrationMethod === 'react'}
-                onClick={() => setIntegrationMethod('react')}
-              />
-              <Tab
-                 iconSrc="/icon-language/icons8-vista-js.svg" 
-                label="Vue.js"
-                isActive={integrationMethod === 'vue'}
-                onClick={() => setIntegrationMethod('vue')}
-              />
-              <Tab
-                   iconSrc="/icon-language/icons8-nextjs.svg" 
-                label="Next.js"
-                isActive={integrationMethod === 'next'}
-                onClick={() => setIntegrationMethod('next')}
-              />
-              <Tab
-                   iconSrc="/icon-language/laravel-svgrepo-com.svg" 
-                label="Laravel"
-                isActive={integrationMethod === 'laravel'}
-                onClick={() => setIntegrationMethod('laravel')}
-              />
             </div>
-          </div>
 
-          <div className="space-y-4">
-            {integrationMethod === 'script' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground">
-                  Add this code just before the closing <code className="text-primary">&lt;/body&gt;</code> tag of your website.
-                </div>
-                <div className="rounded-lg overflow-hidden border">
-                  <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
-                    <Code2 className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">script.html</span>
-                  </div>
-                  <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
-                    <code>{getScriptCode(site)}</code>
-                  </pre>
-                </div>
-              </motion.div>
-            )}
-
+            <div className="space-y-4">
             {integrationMethod === 'cdn' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground">
-                  Add this code in the <code className="text-primary">&lt;head&gt;</code> section of your website.
-                  This method uses our CDN for faster loading.
-                </div>
-                <div className="rounded-lg overflow-hidden border">
-                  <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
-                    <Code2 className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">index.html</span>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Add this code in the <code className="text-primary">&lt;head&gt;</code> section of your website.
+                    This method uses our CDN for faster loading.
                   </div>
-                  <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
-                    <code>{getCdnCode(site)}</code>
-                  </pre>
-                </div>
-              </motion.div>
-            )}
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
+                      <Code2 className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">index.html</span>
+                    </div>
+                    <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
+                      <code>{getCdnCode(site)}</code>
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
 
-            {integrationMethod === 'react' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground">
-                  Create a WebMonitor component and add it to your React application.
-                </div>
-                <div className="rounded-lg overflow-hidden border">
-                  <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
-                    <Braces className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">WebMonitor.tsx</span>
+              {integrationMethod === 'script' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Add this code just before the closing <code className="text-primary">&lt;/body&gt;</code> tag of your website.
                   </div>
-                  <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
-                    <code>{getReactCode(site)}</code>
-                  </pre>
-                </div>
-              </motion.div>
-            )}
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
+                      <Code2 className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">script.html</span>
+                    </div>
+                    <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
+                      <code>{getScriptCode(site)}</code>
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
 
-            {integrationMethod === 'vue' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground">
-                  Create a WebMonitor component in your Vue.js application.
-                </div>
-                <div className="rounded-lg overflow-hidden border">
-                  <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
-                    <Code className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">WebMonitor.vue</span>
-                  </div>
-                  <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
-                    <code>{getVueCode(site)}</code>
-                  </pre>
-                </div>
-              </motion.div>
-            )}
+             
 
-            {integrationMethod === 'next' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground">
-                  Use Next.js Script component for optimal loading.
-                </div>
-                <div className="rounded-lg overflow-hidden border">
-                  <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">layout.tsx</span>
+              {integrationMethod === 'react' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Create a WebMonitor component and add it to your React application.
                   </div>
-                  <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
-                    <code>{getNextCode(site)}</code>
-                  </pre>
-                </div>
-              </motion.div>
-            )}
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
+                      <Braces className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">WebMonitor.tsx</span>
+                    </div>
+                    <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
+                      <code>{getReactCode(site)}</code>
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
 
-            {integrationMethod === 'laravel' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground">
-                  Add the tracking code to your Laravel Blade layout.
-                </div>
-                <div className="rounded-lg overflow-hidden border">
-                  <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
-                    <Database className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">app.blade.php</span>
+              {integrationMethod === 'vue' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Create a WebMonitor component in your Vue.js application.
                   </div>
-                  <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
-                    <code>{getLaravelCode(site)}</code>
-                  </pre>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
+                      <Code className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">WebMonitor.vue</span>
+                    </div>
+                    <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
+                      <code>{getVueCode(site)}</code>
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
+
+              {integrationMethod === 'next' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Use Next.js Script component for optimal loading.
+                  </div>
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
+                      <FileCode className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">layout.tsx</span>
+                    </div>
+                    <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
+                      <code>{getNextCode(site)}</code>
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
+
+              {integrationMethod === 'laravel' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Add the tracking code to your Laravel Blade layout.
+                  </div>
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-muted px-4 py-2 border-b flex items-center gap-2">
+                      <Database className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">app.blade.php</span>
+                    </div>
+                    <pre className="p-4 bg-black/90 text-gray-300 font-mono text-sm">
+                      <code>{getLaravelCode(site)}</code>
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <Alert className="bg-red-200 text-primary mt-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle className="text-primary">Importante: ambito di monitoraggio</AlertTitle>
+          <AlertDescription className="text-primary mt-2">
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                <strong>Pagine singole:</strong> Se inserisci lo script in una pagina specifica, il monitoraggio sarà limitato solo a quella pagina.
+              </li>
+              <li>
+                <strong>Framework (React, Vue, Next.js, Laravel):</strong> Inserendo lo script nel layout principale dell&apos;applicazione, il monitoraggio sarà attivo su tutte le pagine automaticamente.
+              </li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+        </AccordionContent>
+  </AccordionItem>
+</Accordion>
+       
+      </div>
+      <div className='mt-8'>
+        <FooterDashboard />
+      </div>
+    </>
   )
 }

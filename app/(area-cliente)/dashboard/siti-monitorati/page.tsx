@@ -93,7 +93,7 @@ const getInstallationCode = (token: string, method: string) => {
   })(window,document,'script','${token}');
 </script>`;
     case 'cdn':
-      return `<!-- Add this code in the <head> tag -->
+      return `<!-- Aggiungi questo codice nel tag <head> -->
 <script 
   src="https://web-monitor-eta.vercel.app/tracker.min.js" 
   data-site-id="${token}"
@@ -208,7 +208,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [newToken, setNewToken] = useState<string>('');
-  const [integrationMethod, setIntegrationMethod] = useState('script');
+  const [integrationMethod, setIntegrationMethod] = useState('cdn');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -242,7 +242,7 @@ export default function DashboardPage() {
           <div className="space-y-6 p-8">
             <div className="flex items-center justify-between">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <h1 className="text-2xl font-bold">Siti Monitorati</h1>
+                <h1 className="text-2xl font-bold">Siti monitorati</h1>
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -82,7 +82,7 @@ export default function DocsPage() {
   </script>`
   
     const getCdnCode = (site: Site) => `
-  <!-- Add this code in the <head> tag -->
+  <!-- Aggiungi questo codice nel tag <head> -->
   <script 
     src="https://web-monitor-eta.vercel.app/tracker.min.js" 
     data-site-id="9387392782729383"
@@ -436,13 +436,13 @@ export default function DocsPage() {
           </div>
         </CardContent>
       </Card>
-      <Alert className="bg-blue-500/10 border-blue-500/20 text-blue-700">
+      <Alert className="bg-white text-primary">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="text-blue-700">Importante: Ambito di Monitoraggio</AlertTitle>
-          <AlertDescription className="text-blue-600/90 mt-2">
+          <AlertTitle className="text-primary">Importante: ambito di monitoraggio</AlertTitle>
+          <AlertDescription className="text-primary mt-2">
             <ul className="list-disc list-inside space-y-1">
               <li>
-                <strong>Pagine Singole:</strong> Se inserisci lo script in una pagina specifica, il monitoraggio sarà limitato solo a quella pagina.
+                <strong>Pagine singole:</strong> Se inserisci lo script in una pagina specifica, il monitoraggio sarà limitato solo a quella pagina.
               </li>
               <li>
                 <strong>Framework (React, Vue, Next.js, Laravel):</strong> Inserendo lo script nel layout principale dell&apos;applicazione, il monitoraggio sarà attivo su tutte le pagine automaticamente.
