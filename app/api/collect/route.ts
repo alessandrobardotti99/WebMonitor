@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/";
 import { performanceMetrics, errors, consoleEntries, imageIssues, sites, users, resources } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, desc } from "drizzle-orm";
 import { MonitoringData } from "@/lib/api-types";
 import { v4 as uuidv4, validate as isUUID } from "uuid";
 import { getServerSession } from "next-auth";
@@ -182,14 +182,77 @@ export async function GET(req: NextRequest) {
       return setCorsHeaders(NextResponse.json([], { status: 200 }), req);
     }
 
-    const response = userSites.map(site => ({
-      id: site.id,
-      slug: site.slug,
-      url: site.url,
-      monitoringCode: site.monitoringCode,
-      status: site.status,
-      lastUpdate: site.lastUpdate ? new Date(site.lastUpdate).toISOString() : null,
-    }));
+    // 🚀 Recupera le metriche per ogni sito
+    const response = await Promise.all(
+      userSites.map(async (site) => {
+        // ✅ Recupera le metriche di performance (prendiamo l'ultima registrazione)
+        const performanceData = await db
+          .select({
+            loadTime: performanceMetrics.loadTime,
+          })
+          .from(performanceMetrics)
+          .where(eq(performanceMetrics.siteId, site.id))
+          .orderBy(desc(performanceMetrics.createdAt))
+          .limit(1);
+
+        const loadTime = performanceData.length > 0 ? performanceData[0].loadTime : null;
+
+        // ✅ Recupera gli errori JavaScript
+        const jsErrors = await db
+          .select()
+          .from(errors)
+          .where(eq(errors.siteId, site.id))
+          .orderBy(desc(errors.timestamp))
+          .limit(10);
+
+        // ✅ Recupera i log della console
+        const consoleLogs = await db
+          .select()
+          .from(consoleEntries)
+          .where(eq(consoleEntries.siteId, site.id))
+          .orderBy(desc(consoleEntries.timestamp))
+          .limit(10);
+
+        // ✅ Recupera i problemi con le immagini
+        const imgIssues = await db
+          .select()
+          .from(imageIssues)
+          .where(eq(imageIssues.siteId, site.id))
+          .orderBy(desc(imageIssues.createdAt))
+          .limit(10);
+
+        return {
+          id: site.id,
+          slug: site.slug,
+          url: site.url,
+          monitoringCode: site.monitoringCode,
+          status: site.status,
+          lastUpdate: site.lastUpdate ? new Date(site.lastUpdate).toISOString() : null,
+          metrics: {
+            loadTime: loadTime !== null ? loadTime.toFixed(2) : "N/A",
+            errors: jsErrors.map(error => ({
+              type: error.type,
+              message: error.message,
+              filename: error.filename,
+              lineNumber: error.lineNumber,
+              timestamp: new Date(error.timestamp).toISOString(),
+            })),
+            consoleEntries: consoleLogs.map(log => ({
+              type: log.type,
+              message: log.message,
+              timestamp: new Date(log.timestamp).toISOString(),
+            })),
+            imageIssues: imgIssues.map(issue => ({
+              url: issue.url,
+              originalSize: typeof issue.originalSize === "string" ? JSON.parse(issue.originalSize) : issue.originalSize,
+              displaySize: typeof issue.displaySize === "string" ? JSON.parse(issue.displaySize) : issue.displaySize,
+            })),
+          },
+        };
+      })
+    );
+
+    console.log("📤 Response API /collect:", JSON.stringify(response, null, 2));
 
     return setCorsHeaders(NextResponse.json(response, { status: 200 }), req);
   } catch (error) {
@@ -197,6 +260,7 @@ export async function GET(req: NextRequest) {
     return setCorsHeaders(NextResponse.json({ error: "Errore interno del server" }, { status: 500 }), req);
   }
 }
+
 
 
 export async function OPTIONS(req: NextRequest) {

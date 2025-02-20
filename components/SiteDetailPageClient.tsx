@@ -395,32 +395,14 @@ export default function RootLayout({ children }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Performance Overview 📊</CardTitle>
+          <CardTitle>Caricamento Risorse 📊</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={activeMetric} onValueChange={(v) => setActiveMetric(v as 'performance' | 'errors')}>
-            <TabsList className="grid w-full max-w-[400px] grid-cols-2">
-              <TabsTrigger value="performance">Performance</TabsTrigger>
-              <TabsTrigger value="errors">Errors & Issues</TabsTrigger>
-            </TabsList>
-
             {/* 🔥 Grafico della performance generale */}
             <TabsContent value="performance">
-              <div className="h-[300px] mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={performanceChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="loadTime" stroke="hsl(var(--chart-1))" name="Load Time (s)" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
               {/* 🔥 Grafico delle risorse caricate */}
               <div className="h-[300px] mt-8">
-                <h2 className="text-lg font-semibold">Caricamento Risorse</h2>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={resourceChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
