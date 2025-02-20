@@ -489,7 +489,7 @@ export default function Home() {
               variants={stagger}
               className="text-center mb-16"
             >
-              <motion.h2 variants={fadeInUp} className="text-3xl font-bold">
+              <motion.h2 variants={fadeInUp} className="text-3xl font-bold text-primary">
                 Domande Frequenti
               </motion.h2>
               <motion.p variants={fadeInUp} className="text-muted-foreground mt-4 text-lg">
