@@ -54,14 +54,15 @@ export default function DocsPage() {
     id: "1",
     slug: "example-slug",
     url: "https://example.com",
-    status: "active",
+    status: "healthy",
     monitoringCode: "9387392782729383",
     lastUpdate: null,
     metrics: {
       loadTime: 0,
       errors: [],
       consoleEntries: [],
-      imageIssues: []
+      imageIssues: [],
+      resources: []
     },
     performanceData: []
   });
